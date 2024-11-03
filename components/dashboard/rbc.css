@@ -1,0 +1,90 @@
+.rbc-header {
+  color: white;
+  display: flex;
+  align-items: center;
+  font-weight: normal;
+  justify-content: center;
+  height: 36px !important;
+  background-color: #8e49ff;
+}
+
+.rbc-allday-cell {
+  display: none;
+}
+
+.rbc-time-header-cell .rbc-today {
+  background-color: #b080ff !important;
+}
+
+.rbc-time-slot {
+  background-color: #f9f6ff;
+}
+
+.rbc-event,
+.rbc-background-event {
+  padding: 0px !important;
+  margin: none !important;
+  border: none !important;
+  background-color: transparent !important;
+  min-height: 90px !important;
+  max-width: fit-content;
+}
+
+/* .rbc-event {
+  height: 100%;
+} */
+.rbc-event:focus {
+  border: none !important;
+  outline: none !important;
+}
+
+.rbc-event-label {
+  display: none !important;
+}
+
+/* .rbc-event-label:focus {
+  border: none !important;
+  outline: none !important;
+} */
+
+.rbc-event-content br {
+  display: none;
+}
+
+.rbc-month-slot .rbc-event-content br {
+  display: none !important;
+}
+
+.rbc-week-slot .rbc-event-content {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-direction: column !important;
+  width: fit-content !important;
+}
+
+.rbc-month-row {
+  overflow: visible;
+  min-height: 80px !important;
+}
+
+.rbc-row-segment {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* .rbc-event-content:focus {
+  border: none !important;
+  outline: none !important;
+} */
+
+.rbc-day-slot .rbc-events-container {
+  margin-right: 0px !important;
+}
+
+/* .rbc-events-container {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+} */
