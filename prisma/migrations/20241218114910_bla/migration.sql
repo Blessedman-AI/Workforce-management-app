@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Shift" ALTER COLUMN "assignedToUserId" DROP DEFAULT,
+ALTER COLUMN "createdByUserId" DROP DEFAULT;

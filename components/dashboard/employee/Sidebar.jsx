@@ -19,16 +19,21 @@ import {
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 
-import { userSidebarLinks } from '@/utils/data.js';
+import { userSidebarLinks } from '@/helpers/data.js';
 
 const Sidebar = () => {
   const pathname = usePathname();
   const isActive = (path) => path === pathname;
 
   return (
+    // <div
+    //   className="sidebar  w-[180px] pr-2 bg-purple-2 min-h-full
+    //  border-r border-gray-200 shadow-md overflow-y-auto flex-shrink-0"
+    // >
     <div
-      className="sidebar  w-[180px] pr-2 bg-purple-2 h-screen 
-     border-r border-gray-200 shadow-md overflow-y-auto flex-shrink-0"
+      className="sidebar w-[180px] pr-2 pt-[76px] bg-purple-2 min-h-full 
+     border-r border-gray-200 shadow-md overflow-y-auto flex-shrink-0
+     fixed top-0 left-0 h-screen"
     >
       <div className="flex items-center justify-end mb-6">
         <ChevronLeft size={20} className=" cursor-pointer" />

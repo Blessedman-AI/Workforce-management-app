@@ -15,9 +15,14 @@ const ScheduleModal = ({
   handleSubmit,
   handleInputChange,
   employeeList,
-  repeatFrequency,
-  setRepeatFrequency,
 }) => {
+  // console.log('form Data:🥗', formData);
+
+  const getSelectedEmployee = () =>
+    employeeList?.find((emp) => emp.id === formData.employee);
+
+  const selectedEmployee = getSelectedEmployee();
+
   return (
     <div>
       <Dialog
@@ -27,7 +32,10 @@ const ScheduleModal = ({
         onClose={onClose}
       >
         <div className="fixed inset-0 bg-black/60 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center p-4 text-center">
+          <div
+            className="flex min-h-full items-center justify-center 
+          p-4 text-center"
+          >
             <DialogPanel
               className="w-full  max-w-[50vw] transform
           overflow-hidden rounded-b-2xl rounded-t-3xl bg-white text-left
@@ -35,10 +43,14 @@ const ScheduleModal = ({
             >
               <DialogTitle
                 as="h3"
-                className="text-subheading-1 px-8 py-4 w-full bg-purple-1
-                 text-white font-medium leading-6 flex justify-between items-center"
+                className="text-[boldText]  px-8 py-4 w-full bg-purple-1
+                 text-white leading-6 flex justify-between items-center"
               >
-                Shift for {formData.employee} {' - '}
+                Shift for{' '}
+                {selectedEmployee
+                  ? `${selectedEmployee.firstName} ${selectedEmployee.lastName}`
+                  : ' '}
+                {' - '}
                 {formData.date && !isNaN(new Date(formData.date).getTime())
                   ? format(new Date(formData.date), 'EEEE dd MMMM yyyy')
                   : 'No date selected'}
@@ -107,9 +119,9 @@ const ScheduleModal = ({
                         onChange={handleInputChange}
                       >
                         <option value="">Select employee</option>
-                        {employeeList.map((employee) => (
-                          <option key={employee.id} value={employee.title}>
-                            {employee.title}
+                        {employeeList?.map((employee) => (
+                          <option key={employee?.id} value={employee?.id}>
+                            {employee?.firstName} {employee?.lastName}
                           </option>
                         ))}
                       </select>
@@ -213,11 +225,14 @@ const ScheduleModal = ({
                             Repeat this shift every
                           </label>
                           <select
-                            value={repeatFrequency}
-                            onChange={(e) => setRepeatFrequency(e.target.value)}
+                            name="repeatFrequency"
+                            value={formData.repeatFrequency}
+                            // onChange={(e) => setRepeatFrequency(e.target.value)}
+                            onChange={handleInputChange}
                             className="block w-[55%] p-2 border rounded shadow-sm
                      focus:border-none focus:outline-none sm:text-sm"
                           >
+                            <option value="day">Day</option>
                             <option value="week">Week</option>
                             <option value="month">Month</option>
                           </select>

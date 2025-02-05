@@ -1,18 +1,19 @@
 'use client';
 
 import React, { useState, useCallback, useEffect } from 'react';
+import axios from 'axios';
 import { Calendar, momentLocalizer, Views } from 'react-big-calendar';
 import moment from 'moment';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
-import { format, parse } from 'date-fns';
-
 import '@/components/dashboard/rbc.css';
-import { employees } from '@/utils/data';
-import ScheduleModal from './ScheduleModal';
-// import HoverCustomEvent from '@/components/dashboard/HoverCustomEvent';
-import { CustomEvent } from '@/utils/helpers';
+import { useSession } from 'next-auth/react';
+import toast from 'react-hot-toast';
 
-const admin = true;
+import { CustomEvent } from '@/helpers/helpers';
+import ScheduleModal from './ScheduleModal';
+import { getUsers } from '@/helpers/fetchers';
+import Spinner from '@/components/Spinner';
+import CustomMonthCell from '@/components/CustomMonthCell';
 const localizer = momentLocalizer(moment);
 
 const TaskSchedule = () => {
@@ -22,8 +23,13 @@ const TaskSchedule = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [currentView, setCurrentView] = useState(Views.DAY);
   const [editingShift, setEditingShift] = useState(null);
-  const [repeatFrequency, setRepeatFrequency] = useState('weekly');
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [isLoadingEmployees, setIsLoadingEmployees] = useState(null);
+  const [isLoadingShifts, setIsLoadingShifts] = useState(null);
+  const [isDeletingShift, setIsDeletingShift] = useState(null);
+  const [error, setError] = useState(null);
+  const [isAuthorised, setIsAuthorised] = useState(false);
+  const { data: session, status } = useSession();
+  const [employees, setEmployees] = useState([]);
 
   const [formData, setFormData] = useState({
     date: '',
@@ -34,19 +40,80 @@ const TaskSchedule = () => {
     break: '',
     description: '',
     repeatShift: false,
-    repeatFrequency: '',
+    repeatFrequency: 'day',
     sendNotification: false,
   });
 
+  const currentHour = new Date();
+  currentHour.setMinutes(0, 0, 0); // Reset minutes, seconds, milliseconds
+
   useEffect(() => {
-    setIsAdmin(true);
+    if (['owner', 'admin'].includes(session?.user?.role)) {
+      setIsAuthorised(true);
+    } else {
+      setIsAuthorised(false);
+    }
+  }, [session]);
+
+  //fetch employees and store in state
+  useEffect(() => {
+    const getEmployees = async () => {
+      try {
+        setIsLoadingEmployees(true);
+        const employeeList = await getUsers('employee');
+        setEmployees(employeeList);
+      } catch (err) {
+        setError(err);
+        setIsLoadingEmployees(false);
+      } finally {
+        setIsLoadingEmployees(false);
+      }
+    };
+    getEmployees();
   }, []);
 
-  const employeeList = employees();
+  // if (employees) {handleSubmit
+  //   console.log('list of employees😒', employees);
+  // }3
+
+  const fetchShifts = async () => {
+    try {
+      setIsLoadingShifts(true);
+      const response = await axios.get('/api/shifts'); // Axios GET request
+      const shiftsData = response.data; // Axios stores data in `response.data`
+
+      // Transform shifts to match react-big-calendar format
+      const formattedShifts = shiftsData.map((shift) => ({
+        ...shift,
+        start: new Date(shift.start),
+        end: new Date(shift.end),
+        title: `${shift.assignedToUser.firstName} - ${shift.shiftType}`,
+        resourceId: shift.assignedToUserId,
+        assignedToUserId: shift.assignedToUser.id,
+        break: shift.break,
+        description: shift.description,
+        repeatShift: shift.repeatShift,
+        repeatFrequency: shift.repeatFrequency,
+        sendNotification: shift.sendNotification,
+        shiftType: shift.shiftType,
+      }));
+
+      setShift(formattedShifts);
+    } catch (error) {
+      console.error('Error fetching shifts:', error);
+    } finally {
+      setIsLoadingShifts(false);
+    }
+  };
+
+  //call fetchShifts on component mount
+  useEffect(() => {
+    fetchShifts();
+  }, []);
 
   const handleSelectSlot = useCallback(
     (slotInfo) => {
-      const selectedResource = employeeList.find(
+      const selectedResource = employees.find(
         (item) => item.id === slotInfo.resourceId
       );
 
@@ -72,15 +139,17 @@ const TaskSchedule = () => {
         date: startDate.format('YYYY-MM-DD'),
         startTime: startDate.format('HH:mm'),
         endTime: endDate.format('HH:mm'),
-        employee: selectedResource ? selectedResource.title : '',
-        shiftType: getShiftName(startDate.toDate()),
+        employee: selectedResource ? selectedResource.id : '',
+        shiftType: getShiftType(startDate.toDate()),
       });
       setIsModalOpen(true);
     },
-    [formData, employeeList, currentView]
+    [formData, employees, currentView]
   );
 
-  const getShiftName = (startTime) => {
+  // console.log('Form data🔴:', formData);
+
+  const getShiftType = (startTime) => {
     const hour = startTime.getHours();
     if (hour >= 5 && hour < 12) return 'Morning Shift';
     if (hour >= 12 && hour < 17) return 'Afternoon Shift';
@@ -96,8 +165,12 @@ const TaskSchedule = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const toastId = toast.loading(
+      editingShift ? 'Editing shift...' : 'Creating Shift...'
+    );
 
     const now = moment();
     const startTime = moment(
@@ -110,55 +183,172 @@ const TaskSchedule = () => {
     );
 
     if (startTime.isBefore(now)) {
-      alert('The start time cannot be in the past.');
+      // alert('The start time cannot be in the past.');
+      toast.error('The start time cannot be in the past.');
+      toast.dismiss(toastId);
       return; // Prevent form submission
     }
     if (endTime.isBefore(now)) {
-      alert('The end time cannot be in the past.');
-      return; // Prevent form submission
-    }
-
-    if (!formData.employee) {
-      alert('Please select an employee.');
+      // alert('The end time cannot be in the past.');
+      toast.error('The end time cannot be in the past.');
+      toast.dismiss(toastId);
       return; // Prevent form submission
     }
 
     if (startTime.isAfter(endTime)) {
-      alert('Start time must be before end time.');
+      // alert('Start time must be before end time.');
+      toast.error('Start time must be before end time.');
+      toast.dismiss(toastId);
       return;
     }
+    try {
+      // Determine if this is a new shift or an existing shift to update
+      const shiftData = {
+        date: formData.date,
+        employee: formData.employee,
+        shiftType: formData.shiftType,
+        startTime: formData.startTime,
+        endTime: formData.endTime,
+        breaks: parseInt(formData.break),
+        description: formData.description,
+        repeatShift: Boolean(formData.repeatShift),
+        repeatFrequency: formData.repeatFrequency,
+        sendNotification: Boolean(formData.sendNotification),
+      };
 
-    const shiftData = {
-      start: startTime.toDate(),
-      end: endTime.toDate(),
-      title: formData.shiftType,
-      assignTo: formData.employee,
-      resourceId: employeeList.find(
-        (employee) => employee.title === formData.employee
-      )?.id,
-      allDay: false,
-      description: formData.description,
-      break: formData.break,
-      // breakMinutes: formData.break,
-    };
+      console.log('Sending shift data:', shiftData);
+      console.log('Send notification', formData.sendNotification);
 
-    if (editingShift) {
-      // Update existing shift
-      setShift((prevShift) =>
-        prevShift.map((shift) =>
-          shift === editingShift ? { ...shift, ...shiftData } : shift
-        )
+      // If editing an existing shift
+      if (editingShift) {
+        console.log('Sending update data:', {
+          id: editingShift.id,
+          ...shiftData,
+        });
+        const response = await axios.put('/api/shifts', {
+          id: editingShift.id,
+          ...shiftData,
+        });
+        const updatedShift = response.data;
+
+        // Update local state
+        setShift((prevShifts) =>
+          prevShifts.map((shift) =>
+            shift.id === updatedShift.id
+              ? {
+                  // ...shift,
+                  ...updatedShift, // Keep all fields from the response
+                  start: new Date(updatedShift.start),
+                  end: new Date(updatedShift.end),
+                  title: `${updatedShift.assignedToUser.firstName} ${updatedShift.assignedToUser.lastName} - ${updatedShift.shiftType}`,
+                  resourceId: updatedShift.assignedToUserId,
+                  assignedToUserId: updatedShift.assignedToUser.id,
+                  break: updatedShift.break,
+                  description: updatedShift.description,
+                  repeatShift: updatedShift.repeatShift,
+                  repeatFrequency: updatedShift.repeatFrequency,
+                  sendNotification: updatedShift.sendNotification,
+                  shiftType: updatedShift.shiftType,
+                }
+              : shift
+          )
+        );
+      } else {
+        // Create a new shift
+        const response = await axios.post('/api/shifts', shiftData);
+        console.log('response:' + response);
+
+        const newShift = await response.data;
+        setShift((prevShifts) => [
+          ...prevShifts,
+          {
+            ...newShift,
+            start: new Date(newShift.start),
+            end: new Date(newShift.end),
+            title: `${newShift.assignedToUser.firstName} ${newShift.assignedToUser.lastName} - ${newShift.shiftType}`,
+            assignedTo: formData.employee,
+            resourceId: newShift.assignedToUserId,
+
+            createdByName: `${newShift.createdByUser.firstName} ${newShift.createdByUser.lastName}`,
+            createdByEmail: newShift.createdByUser.email,
+          },
+        ]);
+      }
+
+      handleCloseModal();
+      toast.success(
+        editingShift
+          ? 'Shift edited successfully!'
+          : 'Shift created successfully!'
       );
-    } else {
-      // Create new shift
-      setShift((prevShifts) => {
-        const newShifts = [...prevShifts, shiftData];
-        // console.log('New shift data 👌:', shiftData);
-        return newShifts;
-      });
+    } catch (error) {
+      // toast.error(error.message);
+      toast.error(error.response.data.error || 'Failed to save shift');
+      console.error('Shift submission error:', error);
+
+      // Add more detailed error logging
+      if (error.response) {
+        console.error('Error response data:', error.response.data);
+        console.error('Error response status:', error.response.status);
+      } else {
+        toast.error('Failed to save shift. Please try again.');
+      }
+    } finally {
+      toast.dismiss(toastId);
+    }
+  };
+
+  // Edit handler
+  const handleEdit = (shift, e) => {
+    if (e && typeof e.stopPropagation === 'function') {
+      e.stopPropagation();
     }
 
-    handleCloseModal();
+    // Ensure shift.start and shift.end are Date objects
+    const startDate =
+      shift.start instanceof Date ? shift.start : new Date(shift.start);
+    const endDate = shift.end instanceof Date ? shift.end : new Date(shift.end);
+
+    // Check if the dates are valid
+    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+      // console.error('Invalid date in shift:', shift);
+      return; // Exit the function if dates are invalid
+    }
+
+    setEditingShift(shift);
+    console.log(' shift', shift);
+    setFormData({
+      date: moment(startDate).format('YYYY-MM-DD'),
+      employee: shift.resourceId || shift.assignedToUserId,
+      shiftType: shift.shiftType,
+      startTime: moment(startDate).format('HH:mm'),
+      endTime: moment(endDate).format('HH:mm'),
+      break: shift.break?.toString() || '',
+      description: shift.description || '',
+      repeatShift: Boolean(shift.repeatShift),
+      repeatFrequency: shift.repeatFrequency || 'day',
+      sendNotification: shift.sendNotification,
+    });
+    setIsModalOpen(true);
+  };
+
+  // Add a delete handler
+  const handleDelete = async (shiftToDelete) => {
+    try {
+      setIsDeletingShift(true);
+      const response = await axios.delete(`/api/shifts?id=${shiftToDelete.id}`);
+      console.log(response.data.message);
+
+      setShift((prevShifts) =>
+        prevShifts.filter((shift) => shift.id !== shiftToDelete.id)
+      );
+      toast.success('Shift deleted successfully!');
+    } catch (error) {
+      console.error('Shift deletion error:', error);
+      toast.error('Failed to delete shift. Please try again.');
+    } finally {
+      setIsDeletingShift(false);
+    }
   };
 
   const handleCloseModal = () => {
@@ -168,13 +358,13 @@ const TaskSchedule = () => {
     setFormData({
       date: '',
       employee: '',
-      shift: '',
+      shiftType: '',
       startTime: '',
       endTime: '',
-      break: 0,
+      break: '',
       description: '',
       repeatShift: false,
-      repeatFrequency: '',
+      repeatFrequency: 'day',
       sendNotification: false,
     });
   };
@@ -189,40 +379,6 @@ const TaskSchedule = () => {
     // console.log('Events after view change:', shifts);
   }, []);
 
-  const handleDelete = (shiftToDelete) => {
-    setShift((prevShifts) =>
-      prevShifts.filter((shift) => shift !== shiftToDelete)
-    );
-  };
-
-  const handleEdit = (shift, e) => {
-    if (e && typeof e.stopPropagation === 'function') {
-      e.stopPropagation();
-    }
-    if (!admin) return;
-
-    // Ensure shift.start and shift.end are Date objects
-    const startDate =
-      shift.start instanceof Date ? shift.start : new Date(shift.start);
-    const endDate = shift.end instanceof Date ? shift.end : new Date(shift.end);
-
-    // Check if the dates are valid
-    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-      // console.error('Invalid date in shift:', shift);
-      return; // Exit the function if dates are invalid
-    }
-
-    setEditingShift(shift);
-    setFormData({
-      date: format(startDate, 'yyyy-MM-dd'),
-      employee: shift.assignTo,
-      shiftType: shift.Title,
-      startTime: format(startDate, 'HH:mm'),
-      endTime: format(endDate, 'HH:mm'),
-    });
-    setIsModalOpen(true);
-  };
-
   useEffect(() => {
     if (formData.startTime) {
       const [hours, minutes] = formData.startTime.split(':');
@@ -230,19 +386,32 @@ const TaskSchedule = () => {
       startDate.setHours(parseInt(hours), parseInt(minutes));
       setFormData((prev) => ({
         ...prev,
-        shiftType: getShiftName(startDate),
+        shiftType: getShiftType(startDate),
       }));
     }
   }, [formData.date, formData.startTime]);
 
-  if (admin) {
-    return (
-      <div className="scrollbar-custom overflow-x-hidden">
+  return (
+    <div
+      className=" scrollbar-custom
+   flex justify-center items-center h-[100vh] overflow-x-hidden
+    "
+    >
+      {/* <div
+      className={`scrollbar-custom overflow-x-hidden ${
+        isLoadingShifts ? 'flex justify-center items-center h-[80vh]' : ''
+      }`}
+    > */}
+      {isLoadingShifts ? (
+        <Spinner />
+      ) : (
         <Calendar
           step={30}
           timeslots={2}
           localizer={localizer}
           events={shifts}
+          min={currentHour}
+          // selectable={canManageShifts}
           selectable
           components={{
             event: (eventProps) => (
@@ -250,7 +419,8 @@ const TaskSchedule = () => {
                 {...eventProps}
                 onEdit={(e) => handleEdit(eventProps.event, e)}
                 onDelete={handleDelete}
-                isAdmin={isAdmin}
+                isAuthorised={isAuthorised}
+                isDeletingShift={isDeletingShift}
                 Views={Views}
                 currentView={currentView}
               />
@@ -266,22 +436,21 @@ const TaskSchedule = () => {
           onSelectSlot={handleSelectSlot}
           date={currentDate}
           onNavigate={handleNavigate}
-          style={{ height: '80vh', width: '75vw' }}
+          style={{ height: '80vh', width: '80vw' }}
         />
+      )}
 
-        <ScheduleModal
-          isOpen={isModalOpen}
-          onClose={handleCloseModal}
-          formData={formData}
-          handleSubmit={handleSubmit}
-          handleInputChange={handleInputChange}
-          employeeList={employeeList}
-          repeatFrequency={repeatFrequency}
-          setRepeatFrequency={setRepeatFrequency}
-        />
-      </div>
-    );
-  }
+      <ScheduleModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        formData={formData}
+        handleSubmit={handleSubmit}
+        handleInputChange={handleInputChange}
+        employeeList={employees}
+        repeatFrequency={formData.repeatFrequency}
+      />
+    </div>
+  );
 };
 
 export default TaskSchedule;

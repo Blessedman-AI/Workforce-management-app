@@ -7,49 +7,58 @@ import {
   DialogPanel,
   DialogTitle,
 } from '@headlessui/react';
-import ShiftSummaryEditSlideInModal from './ShiftSummaryEditSlideInModal';
+import ShiftSummaryEditModal from './ShiftSummaryEditModal';
 
 const ClockInSummary = ({
   shiftTitles,
   isOpen,
   onClose,
-  shiftDate,
+  shiftStart,
+  shiftEnd,
+  shiftDuration,
   clockIn,
   clockOut,
+  overtime,
   shiftName,
   totalHours,
   note,
   onApprove,
 }) => {
-  const [
-    showShiftSummaryEditSlideInModal,
-    setShowShiftSummaryEditSlideInModal,
-  ] = useState(false);
-
-  //   const handleEdit = () => {
-  //     setShowShiftSummaryEditSlideInModal(true);
-  //   };
+  const [showShiftSummaryEditModal, setShowShiftSummaryEditModal] =
+    useState(false);
 
   const handleEdit = () => {
-    setShowShiftSummaryEditSlideInModal(true);
+    setShowShiftSummaryEditModal(true);
   };
 
   const handleCloseEditModal = () => {
-    setShowShiftSummaryEditSlideInModal(false);
+    setShowShiftSummaryEditModal(false);
     onClose(); // Close both modals when edit modal closes
   };
 
   const handleSendForApprovalRequest = () => {
     onClose();
-    setShowShiftSummaryEditSlideInModal(false);
+    setShowShiftSummaryEditModal(false);
   };
 
   if (!isOpen) return null;
 
+  // console.log('Overtime in Shiftsummary:', overtime);
+  console.log('Initial data🔥', {
+    shiftStart,
+    shiftEnd,
+    clockIn,
+    clockOut,
+    overtime,
+    shiftName,
+    totalHours,
+    note,
+  });
+
   return (
     <>
       <Dialog
-        open={isOpen && !showShiftSummaryEditSlideInModal}
+        open={isOpen && !showShiftSummaryEditModal}
         onClose={onClose}
         className="relative z-[10]"
       >
@@ -69,7 +78,7 @@ const ClockInSummary = ({
                  w-full bg-purple-1 text-white font-medium leading-6
                   flex justify-between items-center "
               >
-                Shift Summary
+                {shiftName} summary
               </DialogTitle>
 
               {/* Content */}
@@ -86,10 +95,10 @@ const ClockInSummary = ({
                     <div className="text-black font-medium mb-1">
                       Shift date
                     </div>
-                    <div className="font-medium">{shiftDate}</div>
+                    <div className="font-medium">{shiftStart}</div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-6">
+                  <div className="grid grid-cols-2  gap-6 mb-4">
                     <div>
                       <div
                         className="text-gray-500 flex justify-center
@@ -125,19 +134,39 @@ const ClockInSummary = ({
                     </div>
                   </div>
 
-                  <div
-                    className="flex bg-purple-2 shadow-sm mt-4 py-4 px-4 
-                  rounded-md items-center space-x-6 w-full"
-                  >
-                    <div className="text-black font-medium">Total hours</div>
-                    <div className="flex items-center space-x-2">
+                  <div className="grid grid-cols-2  gap-6">
+                    <div>
                       <div
-                        className="bg-teal-100 text-teal-700 px-3 py-1 
-                    rounded-full text-sm"
+                        className="text-gray-500 flex justify-center
+                       items-center border-b border-gray-300 bg-purple-2 shadow-sm
+                    px-4 py-2 rounded-tr-md rounded-tl-md"
                       >
-                        {shiftName}
+                        Total hours
                       </div>
-                      <div className="font-bold text-xl">{totalHours}</div>
+                      <div
+                        className="font-medium flex justify-center
+                       items-center  border-gray-300 bg-purple-2 shadow-sm
+                   px-4 py-2 rounded-br-md rounded-bl-md"
+                      >
+                        {totalHours}
+                      </div>
+                    </div>
+
+                    <div>
+                      <div
+                        className="text-gray-500 flex justify-center
+                       items-center border-b border-gray-300 bg-purple-2 shadow-sm
+                    px-4 py-2 rounded-tr-md rounded-tl-md"
+                      >
+                        Overtime
+                      </div>
+                      <div
+                        className="font-medium flex justify-center
+                       items-center  border-gray-300 bg-purple-2 shadow-sm
+                   px-4 py-2 rounded-br-md rounded-bl-md"
+                      >
+                        {overtime || '00:00:00'}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -176,16 +205,18 @@ const ClockInSummary = ({
       </Dialog>
 
       {/* ShiftSummaryEditSlideInModal overlaying the ClockInSummary */}
-      {showShiftSummaryEditSlideInModal && (
-        <ShiftSummaryEditSlideInModal
-          isOpen={showShiftSummaryEditSlideInModal}
+      {showShiftSummaryEditModal && (
+        <ShiftSummaryEditModal
+          isOpen={showShiftSummaryEditModal}
           onClose={handleCloseEditModal} // Close both modals on edit modal close
           onSendForApproval={handleSendForApprovalRequest}
           shiftTitles={shiftTitles}
           initialData={{
-            shiftDate,
+            shiftStart,
+            shiftEnd,
             clockIn,
             clockOut,
+            overtime,
             shiftName,
             totalHours,
             note,

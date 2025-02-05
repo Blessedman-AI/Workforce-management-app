@@ -6,7 +6,7 @@ import {
   DialogTitle,
 } from '@headlessui/react';
 import { Search, X as XIcon } from 'lucide-react';
-import { dummyEmployees } from '@/utils/data';
+import { employees } from '@/helpers/data';
 
 const ShiftReplacementModal = ({ isOpen, onClose, event, onSendRequest }) => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -15,7 +15,7 @@ const ShiftReplacementModal = ({ isOpen, onClose, event, onSendRequest }) => {
   // Only show employees if there's a search query
   const filteredEmployees =
     searchQuery.length > 0
-      ? dummyEmployees.filter((employee) =>
+      ? employees.filter((employee) =>
           employee.name.toLowerCase().includes(searchQuery.toLowerCase())
         )
       : [];
@@ -35,7 +35,7 @@ const ShiftReplacementModal = ({ isOpen, onClose, event, onSendRequest }) => {
   };
 
   const handleSendRequest = () => {
-    const selectedUserNames = dummyEmployees
+    const selectedUserNames = employees
       .filter((employee) => selectedUsers.includes(employee.id))
       .map((employee) => employee.name);
 
@@ -99,7 +99,7 @@ const ShiftReplacementModal = ({ isOpen, onClose, event, onSendRequest }) => {
                 <div className="mb-4">
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-gray-600">
-                      Available users ({dummyEmployees.length})
+                      Available users ({employees.length})
                       {/* {searchQuery && ` • ${filteredEmployees.length} matches`} */}
                     </span>
                     {filteredEmployees.length > 0 && (

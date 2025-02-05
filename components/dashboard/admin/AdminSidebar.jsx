@@ -19,15 +19,20 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 
-import { adminSidebarLinks } from '@/utils/data';
+import { adminSidebarLinks } from '@/helpers/data';
 
 const AdminSidebar = () => {
   const pathname = usePathname();
   const isActive = (path) => path === pathname;
   return (
+    // <div
+    //   className="sidebar z-0  w-[200px] pr-2 bg-purple-2 min-h-full
+    //  border-r border-gray-200 shadow-md overflow-y-auto flex-shrink-0"
+    // >
     <div
-      className="sidebar z-0  w-[200px] pr-2 bg-purple-2 min-h-full
-     border-r border-gray-200 shadow-md overflow-y-auto flex-shrink-0"
+      className="sidebar w-[200px] pr-2 pt-[76px] bg-purple-2 min-h-full 
+     border-r border-gray-200 shadow-md overflow-y-auto flex-shrink-0
+     fixed top-0 left-0 h-screen"
     >
       <div className="flex items-center justify-end mb-6">
         <ChevronLeft size={20} className=" cursor-pointer" />

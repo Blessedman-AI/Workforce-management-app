@@ -21,7 +21,7 @@ const Greeting = ({ name }) => {
     <h1
       className="text-subheading-1 flex justify-start 
     items-center"
-    >{`${greeting} ${name}`}</h1>
+    >{`${greeting}, ${name}`}</h1>
   );
 };
 

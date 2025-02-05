@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { Tooltip, Button } from 'antd';
 
 import {
   Description,
@@ -18,7 +19,7 @@ import {
   Plus,
   Info,
 } from 'lucide-react';
-import { Tooltip } from '@/components/tooltip';
+// import { Tooltip } from '@/components/tooltip';
 
 const AvailabilityModal = ({
   isOpen,
@@ -73,14 +74,11 @@ const AvailabilityModal = ({
               <div className="scrollbar-custom max-h-[80vh]  overflow-y-auto">
                 <form onSubmit={handleSubmit} className="px-8 pt-8">
                   <div className="flex gap-4 items-center mb-4">
-                    <div className="flex justify-center items-center gap-1">
+                    <div className="flex justify-center  gap-[2px]">
                       <label className="text-sm font-medium text-gray-700">
                         Unavailable all day
                       </label>
-                      <Tooltip
-                        text="Toggle on to set your unavailability for a whole day"
-                        position="top"
-                      >
+                      <Tooltip title="Toggle on to set your unavailability for a whole day">
                         <Info className="w-3 h-3 text-gray-400 hover:text-gray-600 cursor-help" />
                       </Tooltip>
                     </div>
@@ -113,7 +111,7 @@ const AvailabilityModal = ({
                   </div>
 
                   <div className="flex gap-10 items-center my-4">
-                    <div className="flex item-center justify-center">
+                    <div className="flex item-center justify-center gap-[2px]">
                       <label
                         className=" text-sm font-medium
                    text-gray-700 mb-1"
@@ -122,8 +120,11 @@ const AvailabilityModal = ({
                       </label>
 
                       <Tooltip
-                        text="Toggle on to set your unavailability for a whole day"
-                        position="top"
+                        title="Set the date of your unavailability"
+                        placement="topLeft"
+                        overlayInnerStyle={{
+                          fontSize: '13px',
+                        }}
                       >
                         <Info className="w-3 h-3 text-gray-400 hover:text-gray-600 cursor-help" />
                       </Tooltip>
@@ -143,19 +144,30 @@ const AvailabilityModal = ({
 
                   {!availabilityFormData.isAllDay && (
                     <div className="flex gap-10 items-center mb-4">
-                      <label
-                        htmlFor="From"
-                        className="block text-sm font-medium text-gray-700"
-                      >
-                        From
-                      </label>
+                      <div className="flex gap-[2px]">
+                        <label
+                          htmlFor="From"
+                          className="block text-sm font-medium text-gray-700"
+                        >
+                          From
+                        </label>
+                        <Tooltip
+                          title="Set the duration of your unavailability"
+                          placement="topLeft"
+                          overlayInnerStyle={{
+                            fontSize: '13px',
+                          }}
+                        >
+                          <Info className="w-3 h-3 text-gray-400 hover:text-gray-600 cursor-help" />
+                        </Tooltip>
+                      </div>
                       <div className="flex w-[55%] items-center gap-4">
                         <input
                           type="time"
                           name="startTime"
                           id="startTime"
-                          className="block w-[35%] rounded-md focus:outline-none
-                     border-gray-300 shadow-sm  sm:text-sm"
+                          className=" w-[35%] rounded-md focus:outline-none
+                     border-gray-300 shadow-sm  "
                           value={availabilityFormData.startTime}
                           onChange={handleInputChange}
                         />
@@ -179,7 +191,7 @@ const AvailabilityModal = ({
                     </div>
                   )}
 
-                  <div className="flex items-center mb-4 gap-10">
+                  <div className="flex items-center mb-4 gap-[52px]">
                     <label
                       htmlFor="note"
                       className="block text-sm font-medium text-gray-700"
@@ -221,12 +233,23 @@ const AvailabilityModal = ({
                         className="inline-flex mb-4 gap-6
                      p-2 border rounded shadow-sm"
                       >
-                        <label
-                          className="block text-sm font-medium
+                        <div className="flex gap-[2px">
+                          <label
+                            className="block text-sm font-medium
                        text-gray-700"
-                        >
-                          Starting from
-                        </label>
+                          >
+                            Starting from
+                          </label>
+                          <Tooltip
+                            title="Choose when you want the repeat to begin"
+                            placement="topLeft"
+                            overlayInnerStyle={{
+                              fontSize: '13px',
+                            }}
+                          >
+                            <Info className="w-3 h-3 text-gray-400 hover:text-gray-600 cursor-help" />
+                          </Tooltip>
+                        </div>
 
                         <input
                           type="date"
@@ -239,13 +262,20 @@ const AvailabilityModal = ({
                       </div>
 
                       <div className="flex gap-4 mb-4">
-                        <div className="flex items-center">
-                          <span className="font-bold mr-2">Daily</span>
-                        </div>
-
                         <div className="flex-1 flex items-center">
-                          <span className="mr-2">Every</span>
-
+                          <div className="flex gap-[2px]">
+                            <span className="font-bold">Every</span>
+                            <Tooltip
+                              title="Choose how often you want your current unavailability
+                               settings to apply"
+                              placement="topLeft"
+                              overlayInnerStyle={{
+                                fontSize: '13px',
+                              }}
+                            >
+                              <Info className="w-3 h-3 text-gray-400 hover:text-gray-600 cursor-help" />
+                            </Tooltip>
+                          </div>
                           <select
                             name="repeatEvery"
                             className="p-2 mx-2 font-bold"
@@ -268,9 +298,22 @@ const AvailabilityModal = ({
                       </div>
 
                       <div className="flex items-center gap-2">
-                        <span className="">
-                          End repeat <span className="font-bold">After</span>
-                        </span>
+                        <div className="flex gap-[6px]">
+                          End repeat
+                          <div className="flex gap-[2px]">
+                            <span className="font-bold">After</span>
+                            <Tooltip
+                              title="Select the number of times you want you 
+                              unavailablity settings to repeat before it stops"
+                              placement="topLeft"
+                              overlayInnerStyle={{
+                                fontSize: '13px',
+                              }}
+                            >
+                              <Info className="w-3 h-3 text-gray-400 hover:text-gray-600 cursor-help" />
+                            </Tooltip>
+                          </div>
+                        </div>
                         <input
                           type="number"
                           name="repeatOccurrences"

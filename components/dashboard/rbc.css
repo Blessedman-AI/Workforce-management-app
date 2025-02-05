@@ -20,19 +20,22 @@
   background-color: #f9f6ff;
 }
 
+.rbc-event {
+  min-height: 50px !important;
+}
+
 .rbc-event,
 .rbc-background-event {
   padding: 0px !important;
   margin: none !important;
   border: none !important;
   background-color: transparent !important;
-  min-height: 90px !important;
+  min-height: fit-content;
   max-width: fit-content;
+  /* height: 0px !important;
+  width: 0px !important; */
 }
 
-/* .rbc-event {
-  height: 100%;
-} */
 .rbc-event:focus {
   border: none !important;
   outline: none !important;
@@ -41,11 +44,6 @@
 .rbc-event-label {
   display: none !important;
 }
-
-/* .rbc-event-label:focus {
-  border: none !important;
-  outline: none !important;
-} */
 
 .rbc-event-content br {
   display: none;
@@ -65,26 +63,32 @@
 
 .rbc-month-row {
   overflow: visible;
-  min-height: 80px !important;
+  /* max-height: 90px !important; */
+}
+
+.rbc-row-content {
+  /* background-color: rgba(0, 128, 128, 0.452) !important; */
+}
+
+.rbc-time-content {
+  /* max-height: 400px !important; */
 }
 
 .rbc-row-segment {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  height: fit-content !important;
+  overflow-y: hidden !important;
 }
-
-/* .rbc-event-content:focus {
-  border: none !important;
-  outline: none !important;
-} */
 
 .rbc-day-slot .rbc-events-container {
   margin-right: 0px !important;
 }
 
-/* .rbc-events-container {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-} */
+.rbc-week-slot .rbc-events-container {
+  /* min-height: 120px !important; */
+}
+
+/* Contain events within cell 1 */
+.rbc-month-view .rbc-row-content {
+  /* height: calc(100% - 1px) !important; */
+  /* overflow: hidden; */
+}

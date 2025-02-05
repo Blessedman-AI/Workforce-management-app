@@ -32,7 +32,7 @@ module.exports = {
           marginTop: '0',
           marginBottom: '8px',
           lineHeight: '1.4',
-          fontWeight: '500',
+          fontWeight: '700',
         },
       ],
 
@@ -40,6 +40,13 @@ module.exports = {
         '16px',
         {
           lineHeight: '100%',
+        },
+      ],
+      boldText: [
+        '16px',
+        {
+          lineHeight: '100%',
+          fontWeight: '700',
         },
       ],
     },
@@ -58,9 +65,12 @@ module.exports = {
         'purple-1': '#8e49ff',
         'purple-2': '#f9f6ff',
         'purple-3': '#7a3fdb',
+        'purple-4': '#d8b4fe',
         'green-1': '#38c173',
+        'green-2': '#8bc34a',
         'orange-1': '#ff9500',
         'blue-1': '#2998ff',
+        'red-1': '#f26072',
       },
     },
     screens: {
@@ -75,10 +85,10 @@ module.exports = {
     function ({ addUtilities }) {
       const newUtilities = {
         '.button-primary': {
-          paddingTop: '1.2rem',
-          paddingRight: '1rem',
-          paddingBottom: '1.2rem',
-          paddingLeft: '1rem',
+          paddingTop: '0.8rem',
+          paddingRight: '0.8rem',
+          paddingBottom: '0.8rem',
+          paddingLeft: '0.8rem',
           backgroundColor: '#8e49ff',
           color: '#fff',
           fontWeight: '500',
@@ -98,9 +108,10 @@ module.exports = {
         },
 
         '.button-secondary': {
-          paddingTop: '1.2rem',
-          paddingRight: '1rem',
-          paddingBottom: '1.2rem',
+          paddingTop: '0.8rem',
+          paddingRight: '0.8rem',
+          paddingBottom: '0.8rem',
+          paddingLeft: '0.8rem',
           paddingLeft: '1rem',
 
           borderWidth: '1px',
@@ -161,6 +172,54 @@ module.exports = {
         },
         '.decline-button:hover': {
           backgroundColor: '#ee1010',
+        },
+
+        '.plain-button-1': {
+          paddingTop: '1.1rem',
+          paddingRight: '1rem',
+          paddingBottom: '1.1rem',
+          paddingLeft: '1rem',
+          backgroundColor: '#8e49ff',
+          color: '#fff',
+          fontWeight: '500',
+          // borderWidth: '1px',
+          // borderStyle: 'solid',
+          // borderColor: '#8e49ff',
+          borderRadius: '4px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyItems: 'center',
+          lineHeight: '1px',
+          height: 'fit-content',
+          // maxHeight: '40px',
+        },
+        '.plain-button-1:hover': {
+          backgroundColor: '#7a3fdb',
+        },
+
+        '.plain-button-2': {
+          paddingTop: '1.1rem',
+          paddingRight: '1rem',
+          paddingBottom: '1.1rem',
+          paddingLeft: '1rem',
+          paddingLeft: '1rem',
+
+          borderWidth: '1px',
+          borderStyle: 'solid',
+          borderColor: '#DADBDD',
+          backgroundColor: '#fff',
+          color: '#333132',
+          fontWeight: '500',
+
+          borderRadius: '4px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyItems: 'center',
+          lineHeight: '1px',
+          height: 'fit-content',
+        },
+        '.plain-button-2:hover': {
+          backgroundColor: '#f9f6ff',
         },
       };
 

@@ -1,6 +1,13 @@
 import './globals.css';
 import { Roboto, Merriweather } from 'next/font/google';
 
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/authOptions';
+import { Toaster } from 'react-hot-toast';
+import SessionWrapper from '@/helpers/SessionWrapper';
+import SessionMonitor from '@/helpers/sessionGuard';
+import ErrorBoundary from '@/components/ErrorBoundary';
+
 const merriweather = Merriweather({
   subsets: ['latin'],
   weight: ['400', '700'],
@@ -15,49 +22,22 @@ const roboto = Roboto({
   variable: '--font-roboto',
 });
 
-export default function RootLayout({ children }) {
+export default async function RootLayout({ children }) {
+  const session = await getServerSession(authOptions); // Fetch session
+  // console.log('Server-side Session:', session);
   return (
     <html lang="en">
-      <body className={`${roboto.variable} ${merriweather.variable} font-sans`}>
-        {children}
+      <body
+      // className={`${roboto.variable} ${merriweather.variable} font-sans, antialiased`}
+      // className={`${roboto.variable}  font-sans, antialiased`}
+      >
+        <ErrorBoundary>
+          <SessionWrapper session={session}>
+            {children}
+            <Toaster position="top-center" />
+          </SessionWrapper>
+        </ErrorBoundary>
       </body>
     </html>
   );
 }
-
-// // import { Readexpro, Merriweather, Roboto } from 'next/font/google';
-// import { Roboto, Merriweather } from 'next/font/google';
-
-// import './globals.css';
-// import Navbar from '@/components/dashboard/Navbar';
-
-// const merriweather = Merriweather({
-//   subsets: ['latin'],
-//   weight: ['400', '700'], // Specify weights you want to use
-//   display: 'swap',
-//   variable: '--font-merriweather',
-// });
-
-// const roboto = Roboto({
-//   subsets: ['latin'],
-//   weight: ['300', '400', '500', '700'],
-//   display: 'swap',
-//   variable: '--font-roboto',
-// });
-
-// export default function RootLayout({ children }) {
-//   return (
-//     <html lang="en">
-//       <body
-//         className={` mx-auto flex flex-col
-//           ${roboto.variable} ${merriweather.variable} font-sans `}
-//       >
-//         <div>
-//           <Navbar />
-//         </div>
-//         <div>{children}</div>
-//         <div></div>
-//       </body>
-//     </html>
-//   );
-// }

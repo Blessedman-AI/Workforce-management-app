@@ -16,50 +16,13 @@
   }
 }
 
-@layer utilities {
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none;
-  }
-
-  .scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-
-  /* Style the scrollbar itself */
-  .scrollbar-custom::-webkit-scrollbar {
-    width: 3px;
-  }
-
-  /* Style the scrollbar thumb */
-  .scrollbar-custom::-webkit-scrollbar-thumb {
-    /* background-color: #f9f6ff; */
-    border-radius: 5px;
-  }
-
-  /* Horizontal scrollbar */
-  .scrollbar-custom::-webkit-scrollbar:horizontal {
-    height: 3px;
-  }
-
-  .sidebar::-webkit-scrollbar {
-    width: 3px;
-  }
-
-  .sidebar::-webkit-scrollbar-thumb {
-    background-color: #8e49ff;
-    border-radius: 5px;
-  }
-
-  /* Style the scrollbar track */
-  /* .scrollbar-custom::-webkit-scrollbar-track {
-    background-color: #f1f1f1;
-  } */
-}
-
 :root {
   --bg: #fff;
-  --text: #333132;
+  --text: #3f4648;
+
+  --font-lato: 'Lato', sans-serif;
+  --font-poppins: 'Poppins', sans-serif;
+  --font-roboto: 'Roboto', sans-serif;
 }
 
 * {
@@ -70,7 +33,16 @@
 
 body {
   background-color: var(--bg);
+  /* font-family: var(--font-lato); */
+  font-family: var(--font-roboto);
   color: var(--text);
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-poppins);
 }
 
 a {
@@ -86,7 +58,55 @@ a {
   width: 50px;
   height: auto;
 }
-/* 
-p {
-  font-family: var(--font-roboto), sans-serif;
-} */
+
+@layer utilities {
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* General Scrollbar Styling */
+  ::-webkit-scrollbar {
+    width: 4px; /* For vertical scrollbars */
+    height: 4px; /* For horizontal scrollbars */
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #f5d86500; /* Background of the scrollbar track */
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #efe9fb; /* Thumb (draggable handle) colour */
+    border-radius: 4px; /* Rounded corners for thumb */
+    min-height: 50px;
+  }
+
+  /* Hover Effect for Thumb */
+  ::-webkit-scrollbar-thumb:hover {
+    background: #d8b4fe; /* Darker colour on hover */
+  }
+
+  /* For Firefox */
+  .scrollbar {
+    scrollbar-width: thin; /* Reduces scrollbar width */
+    scrollbar-color: #efe9fb #f5d86500; /* Thumb and track colours */
+  }
+
+  /* To completely hide scrollbars */
+  .hide-scrollbar {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+  }
+
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+  }
+
+  .users-table {
+    --scrollbar-thumb-min-height: 50px;
+    /* background-color: red !important; */
+  }
+}
+
+.rbc-show-more {
+  color: #8e49ff !important;
+}

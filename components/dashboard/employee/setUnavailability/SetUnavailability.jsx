@@ -44,7 +44,7 @@ const SetUnavailability = ({ isOpen, onClose }) => {
     >
       <div
         className={`fixed  top-0 right-0 h-full bg-white overflow-y-auto
-           rounded-lg z-[99] shadow-lg transition-transform duration-500 ease-in-out 
+           rounded-lg z-[99] shadow-lg transition-transform duration-[600] ease-in-out 
         w-[400px] transform ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
       >
         <div className="p-4 border-b flex justify-between items-center">
@@ -174,8 +174,9 @@ const SetUnavailability = ({ isOpen, onClose }) => {
               ))}
             </ul>
             <p className="text-[14px] mt-2 text-gray-500 italic">
-              Block out dates on your calendar so that shifts can't be assigned
-              to you on those days.
+              {
+                " Block out dates on your calendar so that shifts can't be assigned to you on those days."
+              }
             </p>
           </div>
         </div>

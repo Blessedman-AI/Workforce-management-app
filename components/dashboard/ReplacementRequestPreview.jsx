@@ -93,7 +93,7 @@ const ReplacementRequestPreview = ({
       } z-[1]`}
     >
       <div
-        className={`fixed  top-0 right-0 h-full bg-white z-[2]
+        className={`fixed  top-0 right-0 h-full rounded-lg pt-[74px] bg-white z-[2]
         shadow-lg transition-transform duration-500 ease-in-out 
         w-[500px] transform ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
       >

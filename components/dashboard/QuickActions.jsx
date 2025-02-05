@@ -53,7 +53,7 @@ const QuickActions = () => {
   };
 
   return (
-    <div className="mb-6 max-w-3xl p-6 bg-purple-2 ">
+    <div className="mb-6 w-full p-6 bg-purple-2 rounded-lg ">
       <h2 className="text-xl font-semibold text-gray-800 mb-4 ">
         Quick Actions
       </h2>
