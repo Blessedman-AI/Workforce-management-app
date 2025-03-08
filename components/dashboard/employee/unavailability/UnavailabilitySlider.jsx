@@ -33,7 +33,7 @@ const Unavailability = ({ isOpen, onClose, onUnavailabilityUpdated }) => {
     };
 
     fetchData();
-  }, [isOpen]);
+  }, [isOpen, vacationDates]);
 
   const fetchUnavailability = async () => {
     const response = await axios.get('/api/unavailability');

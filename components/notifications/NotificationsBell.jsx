@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Bell, Clock, Calendar, ArrowLeftRight } from 'lucide-react';
+import { Bell, Clock, Calendar, ArrowLeftRight, Mail } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 
 import { useNotifications } from '@/hooks/useNotifications';

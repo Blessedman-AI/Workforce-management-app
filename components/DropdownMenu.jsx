@@ -25,7 +25,7 @@ export default function DropdownMenu({
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, []);
+  });
 
   return (
     <div

@@ -20,7 +20,7 @@ const Navbar = () => {
 
   useEffect(() => {
     notificationsState.triggerRefetch();
-  }, [pathname]);
+  }, [notificationsState]);
 
   // console.log('Session is 😒', session);
   return (

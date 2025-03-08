@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { Calendar, momentLocalizer, Views } from 'react-big-calendar';
@@ -154,16 +154,16 @@ const Schedule = () => {
     }
   };
 
-  const handleNavigate = useCallback((newDate) => {
+  const handleNavigate = (newDate) => {
     setCurrentDate(newDate);
-  }, []);
+  };
 
-  const handleViewChange = useCallback((newView) => {
+  const handleViewChange = (newView) => {
     setCurrentView(newView);
     // console.log('Current view:', newView);
-  }, []);
+  };
 
-  const handleSelectSlot = useCallback((slotInfo) => {
+  const handleSelectSlot = (slotInfo) => {
     setSelectedSlot(slotInfo);
 
     const startDate = moment(slotInfo.start);
@@ -182,7 +182,7 @@ const Schedule = () => {
       repeatOccurrences: 5,
     });
     setIsModalOpen(true);
-  }, []);
+  };
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -202,16 +202,16 @@ const Schedule = () => {
     setIsShiftDetailsModalOpen(true);
   };
 
-  const handleCloseEventDetailsModaL = useCallback(() => {
+  const handleCloseEventDetailsModaL = () => {
     setIsShiftDetailsModalOpen(false);
     setShiftDetails(null);
-  }, []);
+  };
 
-  const handleShiftReplacementButtonClick = useCallback((event) => {
+  const handleShiftReplacementButtonClick = (event) => {
     setShiftDetails(event);
     setIsShiftDetailsModalOpen(false);
     setIsReplacementModalOpen(true);
-  }, []);
+  };
 
   // useEffect(() => {
   //   if (shiftDetails) {
@@ -219,15 +219,15 @@ const Schedule = () => {
   //   }
   // }, [shiftDetails]);
 
-  const handleCloseReplacementModal = useCallback(() => {
+  const handleCloseReplacementModal = () => {
     setIsReplacementModalOpen(false);
     setShiftDetails(null);
     // loadShifts();
-  });
+  };
 
-  const handleCloseReplacementRequestSentModal = useCallback(() => {
+  const handleCloseReplacementRequestSentModal = () => {
     setIsReplacementRequestSentModalOpen(false);
-  });
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
