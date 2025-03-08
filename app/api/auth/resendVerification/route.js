@@ -3,14 +3,17 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { Resend } from 'resend';
 import crypto from 'crypto';
-import { verificationEmail } from '@/helpers/utils';
+import { render } from '@react-email/render';
+import { UserVerificationEmail } from '@/lib/resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(request) {
   try {
     const { email } = await request.json();
+    
 
+    
     if (!email) {
       return NextResponse.json({ error: 'Email is required' }, { status: 400 });
     }
@@ -47,21 +50,35 @@ export async function POST(request) {
 
     // Send verification email
     const verificationUrl = `${process.env.NEXTAUTH_URL}/verify?token=${verifyToken}`;
+    
+    
+    const emailHtml = await render(UserVerificationEmail({
+      firstName: user.firstName,
+      verificationUrl,
+    }));
 
-    await resend.emails.send({
+    // console.log('Rendered HTML:', emailHtml)
+
+
+    const emailResponse = await resend.emails.send({
       from: process.env.EMAIL_FROM || 'onboarding@resend.dev',
       to: email,
       subject: 'Welcome to Your Employee Portal',
-      html: verificationEmail({
-        firstName: user.firstName,
-        verificationUrl,
-      }),
+      html: emailHtml,
+  
     });
+  
     console.log('Sending email...📩');
+    console.log('Email Send Response:💕📝', emailResponse);
+
+    if (!emailResponse?.data?.id) {
+      throw new Error('Failed to send email: No response ID received');
+    }
 
     return NextResponse.json({
       message: 'Verification email sent successfully',
     });
+
   } catch (error) {
     console.error('Error sending verification email:', error);
     return NextResponse.json(

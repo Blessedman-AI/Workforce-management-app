@@ -20,10 +20,11 @@ import {
   X,
 } from 'lucide-react';
 
-import { formatDateAdded, formatLastLogin } from '@/helpers/utils';
+import { formatDateAdded, formatLastLogin, getInitials } from '@/helpers/utils';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import AddUsers from './AddUsers';
 import DropdownMenu from '@/components/DropdownMenu';
+import CircularSpinner from '@/components/Spinners';
 
 const UsersTable = () => {
   const [users, setUsers] = useState([]);
@@ -41,7 +42,16 @@ const UsersTable = () => {
   const dropDownRef = useRef(null);
   const buttonRef = useRef(null);
 
-  const archived = [];
+  const filterUsers = (users, role, includeArchived = false) => {
+    return users.filter((user) => {
+      if (includeArchived) {
+        return user.deletedAt !== null; // Archived users
+      }
+      return (
+        user.role === role && user.deletedAt === null && user.emailVerified
+      );
+    });
+  };
 
   const openAddUsersModal = () => {
     setIsUserModalOpen(true);
@@ -86,13 +96,19 @@ const UsersTable = () => {
     fetchUsers();
   }, []);
 
+  console.log('🔥', users);
+
   useEffect(() => {
     setCounts({
       users: users.filter(
-        (user) => user.role === 'employee' && user.deletedAt === null
+        (user) =>
+          user.role === 'employee' &&
+          user.deletedAt === null &&
+          user.emailVerified
       ).length,
       admins: users.filter(
-        (user) => user.role === 'admin' && user.deletedAt === null
+        (user) =>
+          user.role === 'admin' && user.deletedAt === null && user.emailVerified
       ).length,
       archived: users.filter((user) => user.deletedAt !== null).length,
     });
@@ -101,7 +117,7 @@ const UsersTable = () => {
   if (isLoadingUsers) {
     return (
       <div className="flex justify-center items-center w-full ">
-        <Spinner />
+        <CircularSpinner />
       </div>
     );
   }
@@ -110,12 +126,18 @@ const UsersTable = () => {
     switch (activeTab) {
       case 'users':
         data = users.filter(
-          (user) => user.role === 'employee' && user.deletedAt === null
+          (user) =>
+            user?.role === 'employee' &&
+            user?.deletedAt === null &&
+            user?.emailVerified
         );
         break;
       case 'admins':
         data = users.filter(
-          (user) => user.role === 'admin' && user.deletedAt === null
+          (user) =>
+            user.role === 'admin' &&
+            user.deletedAt === null &&
+            user?.emailVerified
         );
         break;
       case 'archived':
@@ -192,10 +214,11 @@ const UsersTable = () => {
                   </td>
                   <td className="p-4 flex items-center gap-3">
                     <div
-                      className="w-8 h-8 rounded-full flex items-center justify-center text-white"
+                      className="w-8 h-8 rounded-full flex items-center justify-center
+                       text-white text-[13px] font-bold"
                       style={{ backgroundColor: user?.avatarColor }}
                     >
-                      {user.initials}
+                      {getInitials(`${user.firstName} ${user.lastName}`)}
                     </div>
                     {user.firstName}
                   </td>

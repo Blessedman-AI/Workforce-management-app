@@ -51,7 +51,7 @@ export const adminSidebarLinks = [
     title: null,
     items: [
       {
-        path: '/admin/my-overview',
+        path: '/admin',
         name: 'Overview',
         icon: Grid,
         color: '#ad1cfc',

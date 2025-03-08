@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useCallback, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { Calendar, momentLocalizer, Views } from 'react-big-calendar';
 import moment from 'moment';
@@ -14,7 +15,6 @@ import {
 import { X as XIcon } from 'lucide-react';
 import { format } from 'date-fns';
 
-import { dummyShifts } from '@/helpers/data.js';
 import { CustomEvent } from '@/helpers/helpers';
 import AvailabilityModal from './modals/AvailabilityModal';
 import ShiftDetailsModal from './modals/ShiftDetailsModal';
@@ -22,8 +22,14 @@ import '@/components/dashboard/rbc.css';
 import ShiftReplacementModal from './modals/ShiftReplacementModal';
 import ReplacementRequestSentModal from './modals/ReplacementRequestSentModal';
 import UnavailabilityButton from '../buttons/UnavailabilityButton';
-import { ShiftsForCalendar } from '@/helpers/utils';
-import Spinner from '@/components/Spinner';
+import {
+  cancelShiftExchange,
+  fetchShifts,
+  fetchUnavailability,
+  ShiftsForCalendar,
+} from '@/helpers/utils';
+import toast from 'react-hot-toast';
+import CircularSpinner from '@/components/Spinners';
 
 const localizer = momentLocalizer(moment);
 
@@ -33,11 +39,17 @@ const Schedule = () => {
   const [unavailabilities, setUnavailabilities] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState(null);
-  const [isUser, setIsUser] = useState(false);
-  const [shifts, setShifts] = useState(null);
+  // const [isUser, setIsUser] = useState(false);
+  const [shifts, setShifts] = useState([]);
   const [shiftDetails, setShiftDetails] = useState(null);
+  const [unavailabilityDetails, setUnavailabilityDetails] = useState(null);
   const [isShiftDetailsModalOpen, setIsShiftDetailsModalOpen] = useState(false);
   const [isReplacementModalOpen, setIsReplacementModalOpen] = useState(false);
+  const [isCancellingExchangeRequest, setIsCancellingExchangeRequest] =
+    useState(false);
+  const [error, setError] = useState(null);
+  const searchParams = useSearchParams();
+
   const [
     isReplacementRequestSentModalOpen,
     setIsReplacementRequestSentModalOpen,
@@ -56,12 +68,15 @@ const Schedule = () => {
     repeatOccurrences: 5,
   });
 
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const { data: session, status } = useSession();
-  const isAuthorised = session?.user?.role === 'admin';
-
-  // console.log('console logshift📩', shifts);
-  // console.log('console shiftdetauls', shiftDetails);
+  const isUser = session?.user?.role === 'employee';
+  const requestId = searchParams.get('requestId');
+  // console.log('requestId🥇👿', requestId);
+  console.log('console logshift📩', shifts);
+  // console.log('console shiftdetails', shiftDetails);
+  // console.log('ASsignedShifts✅❌', session?.user?.assignedShifts);
+  // console.log('sessions is', session);
 
   // Helper to determine if we're on mobile
   const [isMobile, setIsMobile] = React.useState(false);
@@ -79,30 +94,65 @@ const Schedule = () => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  const loadShifts = async () => {
+    setIsLoading(true);
+    try {
+      const getShifts = await fetchShifts();
+      // if (getShifts) {
+      // console.log('getShifts🥇🪗', getShifts);
+      // }
+      const formattedShifts = getShifts ? ShiftsForCalendar(getShifts) : [];
+      setShifts(formattedShifts);
+    } catch (error) {
+      console.error('Error formatting shifts:', error);
+      setShifts([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loadUnavailabilities = async () => {
+    try {
+      const unavailabilityData = await fetchUnavailability();
+      setUnavailabilities(unavailabilityData);
+    } catch (error) {
+      console.error('Error loading unavailabilities:', error);
+      setUnavailabilities([]);
+    }
+  };
+
   useEffect(() => {
-    const loadShifts = async () => {
-      setIsLoading(true);
-      try {
-        if (status === 'authenticated' && session?.user?.assignedShifts) {
-          const formattedShifts = ShiftsForCalendar(
-            session.user.assignedShifts
-          );
-          setShifts(formattedShifts);
-        }
-      } catch (error) {
-        console.error('Error formatting shifts:', error);
-        setShifts([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     loadShifts();
-  }, [session, status]);
-  // console.log('Shifts on schedule comp', shifts);
+    loadUnavailabilities();
+    // console.log('shifts loaded!⚔️🔫');
+  }, [status]);
 
-  const allEvents = [...dummyShifts, ...unavailabilities];
-  // console.log('All events', allEvents);
+  // console.log('loading changed', isLoading);
+  // console.log('Shifts on schedule comp🔥', shifts);
+  // console.log('Unavailabilities🏀', unavailabilities);
+
+  const handleCancelExchangeRequest = async (shifts) => {
+    setIsCancellingExchangeRequest(true);
+    const loadingToastId = toast.loading('Cancelling request...');
+    try {
+      const exchangeRequest = await cancelShiftExchange(
+        shifts.exchangeRequestId
+      );
+      console.log('exchange request', exchangeRequest);
+
+      toast.success('Request cancelled successfully!');
+    } catch (error) {
+      console.error('Error cancelling request', error);
+      setError(error);
+      toast.error(error.message || 'Failed to cancel request');
+    } finally {
+      setIsCancellingExchangeRequest(false);
+      setIsShiftDetailsModalOpen(false);
+      setShiftDetails(null);
+      toast.dismiss(loadingToastId);
+      await loadShifts();
+    }
+  };
 
   const handleNavigate = useCallback((newDate) => {
     setCurrentDate(newDate);
@@ -110,7 +160,7 @@ const Schedule = () => {
 
   const handleViewChange = useCallback((newView) => {
     setCurrentView(newView);
-    console.log('Current view:', newView);
+    // console.log('Current view:', newView);
   }, []);
 
   const handleSelectSlot = useCallback((slotInfo) => {
@@ -144,7 +194,11 @@ const Schedule = () => {
 
   const handleShiftClick = (event) => {
     setShiftDetails(event);
+    setIsShiftDetailsModalOpen(true);
+  };
 
+  const handleUnavailabilityClick = (event) => {
+    setUnavailabilityDetails(event);
     setIsShiftDetailsModalOpen(true);
   };
 
@@ -159,9 +213,16 @@ const Schedule = () => {
     setIsReplacementModalOpen(true);
   }, []);
 
+  // useEffect(() => {
+  //   if (shiftDetails) {
+  //     console.log('shiftDetails updated:🔥', shiftDetails);
+  //   }
+  // }, [shiftDetails]);
+
   const handleCloseReplacementModal = useCallback(() => {
     setIsReplacementModalOpen(false);
     setShiftDetails(null);
+    // loadShifts();
   });
 
   const handleCloseReplacementRequestSentModal = useCallback(() => {
@@ -255,95 +316,105 @@ const Schedule = () => {
     });
   };
 
-  return (
-    <div className="w-full">
-      {/* Header Section - Full width but with padding */}
-      <div className="px-4 md:px-8">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4 md:pt-8">
-          <h2 className="text-subheading-1">Your Schedule Calendar</h2>
-          <div className="w-full sm:w-auto">
-            <UnavailabilityButton />
-          </div>
-        </div>
-      </div>
-
-      {/* Calendar Section - Horizontal Scroll Container */}
+  if (isLoading || !shifts) {
+    return (
       <div
-        className="scrollbar-custom flex justify-center items-center
-         overflow-x-hidden overflow-y-hidden "
+        className="relative min-h-[80vh] w-full flex justify-center
+     items-center bg-white/50"
       >
-        {/* <div
-      className={`scrollbar-custom overflow-x-hidden ${
-        isLoadingShifts ? 'flex justify-center items-center h-[80vh]' : ''
-      }`}
-    > */}
-        {isLoading ? (
-          <Spinner />
-        ) : (
-          <Calendar
-            localizer={localizer}
-            step={30}
-            timeslots={2}
-            // events={allEvents}
-            events={shifts}
-            selectable
-            onSelectSlot={handleSelectSlot}
-            components={{
-              event: (eventProps) => (
-                <CustomEvent
-                  {...eventProps}
-                  shiftDetails={handleShiftClick}
-                  isAuthorised={isAuthorised}
-                  Views={Views}
-                />
-              ),
-            }}
-            startAccessor="start"
-            endAccessor="end"
-            resourceIdAccessor="id"
-            defaultView={Views.MONTH}
-            view={currentView}
-            onView={handleViewChange}
-            date={currentDate}
-            onNavigate={handleNavigate}
-            views={[Views.DAY, Views.WEEK, Views.MONTH]}
-            style={{ height: '80vh', width: '80vw' }}
-          />
-        )}
+        <CircularSpinner />
       </div>
+    );
+  }
 
-      {/* Modals */}
-      <AvailabilityModal
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-        availabilityFormData={availabilityFormData}
-        handleSubmit={handleSubmit}
-        handleInputChange={handleInputChange}
-      />
+  return (
+    <>
+      {shifts && (
+        <div className="w-full flex flex-col justify-center">
+          <div
+            className="flex items-center justify-between  gap-4 pt-4
+              py-8 px-4"
+          >
+            <div className="w-full flex items-center justify-between">
+              <h2 className="text-subheading-1">Your Schedule Calendar</h2>
+              {/* <div className="w-full sm:w-auto"> </div> */}
+              <UnavailabilityButton />
+            </div>
+          </div>
 
-      <ShiftDetailsModal
-        isOpen={isShiftDetailsModalOpen}
-        onClose={handleCloseEventDetailsModaL}
-        event={shiftDetails}
-        handleShiftReplacementButtonClick={handleShiftReplacementButtonClick}
-      />
+          {/* Calendar Section - Horizontal Scroll Container */}
+          <div
+            className="scrollbar-custom flex justify-center items-center
+         overflow-x-hidden overflow-y-hidden "
+          >
+            <Calendar
+              localizer={localizer}
+              step={30}
+              timeslots={2}
+              // events={allEvents}
+              events={[...shifts, ...unavailabilities]}
+              // events={shifts}
+              selectable
+              onSelectSlot={handleSelectSlot}
+              components={{
+                event: (eventProps) => (
+                  <CustomEvent
+                    {...eventProps}
+                    shiftDetails={handleShiftClick}
+                    unavailabilityDetails={handleUnavailabilityClick}
+                    isUser={isUser}
+                    Views={Views}
+                  />
+                ),
+              }}
+              startAccessor="start"
+              endAccessor="end"
+              resourceIdAccessor="id"
+              defaultView={Views.MONTH}
+              view={currentView}
+              onView={handleViewChange}
+              date={currentDate}
+              onNavigate={handleNavigate}
+              views={[Views.DAY, Views.WEEK, Views.MONTH]}
+              style={{ height: '80vh', width: '80vw' }}
+            />
+          </div>
 
-      <ShiftReplacementModal
-        isOpen={isReplacementModalOpen}
-        onClose={handleCloseReplacementModal}
-        event={shiftDetails}
-        onSendRequest={(users) => {
-          setSelectedReplacements(users);
-          setIsReplacementRequestSentModalOpen(true);
-        }}
-      />
+          {/* Modals */}
+          <AvailabilityModal
+            isOpen={isModalOpen}
+            onClose={handleCloseModal}
+            availabilityFormData={availabilityFormData}
+            handleSubmit={handleSubmit}
+            handleInputChange={handleInputChange}
+          />
 
-      <ReplacementRequestSentModal
-        isOpen={isReplacementRequestSentModalOpen}
-        onClose={handleCloseReplacementRequestSentModal}
-        selectedUsers={selectedReplacements}
-      />
-    </div>
+          <ShiftDetailsModal
+            isOpen={isShiftDetailsModalOpen}
+            onClose={handleCloseEventDetailsModaL}
+            event={shiftDetails}
+            handleShiftReplacementButtonClick={
+              handleShiftReplacementButtonClick
+            }
+            handleCancelExchangeRequest={handleCancelExchangeRequest}
+          />
+
+          <ShiftReplacementModal
+            loadShifts={loadShifts}
+            isOpen={isReplacementModalOpen}
+            onClose={handleCloseReplacementModal}
+            shiftId={shiftDetails?.shiftId} // Use shiftDetails instead of event
+            shiftTitle={shiftDetails?.title} // Use shiftDetails instead of event
+          />
+
+          <ReplacementRequestSentModal
+            isOpen={isReplacementRequestSentModalOpen}
+            onClose={handleCloseReplacementRequestSentModal}
+            selectedUsers={selectedReplacements}
+          />
+        </div>
+      )}
+    </>
   );
 };
 

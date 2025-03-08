@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { capitalizeInitials, validatePassword } from '@/helpers/utils';
 import { Eye, EyeOff, Check, CircleAlert } from 'lucide-react';
 import toast from 'react-hot-toast';
+import LoadingButton from './dashboard/buttons/Loading';
 
 const SignupForm = () => {
   const router = useRouter();
@@ -27,6 +28,8 @@ const SignupForm = () => {
     email: '',
     password: '',
   });
+
+  let isValid;
 
   useEffect(() => {
     // Update validation checks whenever password changes
@@ -70,31 +73,31 @@ const SignupForm = () => {
       return;
     }
 
-    try {
-      const signupResponse = await axios.post('/api/auth/signup', formData);
-      console.log('Signup response data', signupResponse);
+    // try {
+    //   const signupResponse = await axios.post('/api/auth/signup', formData);
+    //   console.log('Signup response data', signupResponse);
 
-      const result = await signIn('credentials', {
-        email: formData.email,
-        password: formData.password,
-        callbackUrl: '/admin/my-overview',
-        redirect: true,
-      });
+    //   const result = await signIn('credentials', {
+    //     email: formData.email,
+    //     password: formData.password,
+    //     callbackUrl: '/admin/my-overview',
+    //     redirect: true,
+    //   });
 
-      if (result?.error) {
-        throw new Error(result.error);
-      }
+    //   if (result?.error) {
+    //     throw new Error(result.error);
+    //   }
 
-      if (result?.url) {
-        router.push(result.url);
-      }
-    } catch (err) {
-      const errorMessage = err.response?.data?.error || 'Error during signup';
-      console.error('Error:', errorMessage);
-      toast.error(errorMessage);
-      setError(errorMessage);
-      setLoading(false);
-    }
+    //   if (result?.url) {
+    //     router.push(result.url);
+    //   }
+    // } catch (err) {
+    //   const errorMessage = err.response?.data?.error || 'Error during signup';
+    //   console.error('Error:', errorMessage);
+    //   toast.error(errorMessage);
+    //   setError(errorMessage);
+    //   setLoading(false);
+    // }
   };
 
   return (
@@ -122,7 +125,7 @@ const SignupForm = () => {
               value={capitalizeInitials(formData.firstName)}
               onChange={handleChange}
               required
-              className="flex-1 p-2 border rounded-md text-gray-500"
+              className="w-full p-2 border rounded-md text-gray-500"
             />
             <input
               type="text"
@@ -131,7 +134,7 @@ const SignupForm = () => {
               value={capitalizeInitials(formData.lastName)}
               onChange={handleChange}
               required
-              className="flex-1 p-2 border rounded-md text-gray-500"
+              className="w-full p-2 border rounded-md text-gray-500"
             />
           </div>
 
@@ -155,13 +158,13 @@ const SignupForm = () => {
               required
               className="w-full p-2 border rounded-md text-gray-500"
             />
-            <button
+            {/* <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
               className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
             >
               {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-            </button>
+            </button> */}
           </div>
 
           {/* Password requirements section */}
@@ -200,23 +203,34 @@ const SignupForm = () => {
             </div>
           )}
 
-          <button
+          {/* <button
             type="submit"
-            className="w-full p-2 text-white bg-purple-600
-             rounded-md hover:bg-purple-700 disabled:bg-purple-300"
+            className="w-full p-2 text-white bg-purple-1
+             rounded-md hover:bg-purple-3 disabled:bg-purple-4"
             disabled={
               loading ||
               !Object.values(validationChecks).every((check) => check)
             }
           >
             {loading ? 'Creating account...' : 'Sign Up'}
-          </button>
-
+          </button> */}
+          <div className="flex items-center justify-center w-full">
+            <LoadingButton
+              type="submit"
+              loading={loading}
+              disabled={
+                loading ||
+                !Object.values(validationChecks).every((check) => check)
+              }
+            >
+              Sign unup
+            </LoadingButton>
+          </div>
           <div className="mt-4 text-center text-[16px] sm:text-[12px] text-gray-600">
             Already have an account?{' '}
             <Link
               href="/login"
-              className="text-purple-600 font-bold hover:underline"
+              className="text-purple-1 font-bold hover:underline"
             >
               Log in here
             </Link>

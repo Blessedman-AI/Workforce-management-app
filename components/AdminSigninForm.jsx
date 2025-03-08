@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import ResendVerificationLink from './ResendVerificationLink';
+import LoadingButton from './dashboard/buttons/Loading';
 
 const SignInForm = () => {
   const router = useRouter();
@@ -35,12 +36,12 @@ const SignInForm = () => {
       const response = await signIn('credentials', {
         email: formData.email,
         password: formData.password,
-        redirect: true,
-        callbackUrl:
-          callbackUrl ||
-          (session?.user?.role === 'admin'
-            ? '/admin/my-overview'
-            : '/user/my-overview'),
+        redirect: false,
+        // callbackUrl:
+        //   callbackUrl ||
+        //   (session?.user?.role === 'admin'
+        //     ? '/admin/my-overview'
+        //     : '/user/my-overview'),
       });
 
       console.log(response?.error);
@@ -60,15 +61,16 @@ const SignInForm = () => {
       }
 
       const session = await getSession();
-      console.log(session);
+      console.log('Session is✈️⚔️', session);
 
-      // if (session?.user?.role === 'owner' || session?.user?.role === 'admin') {
-      //   router.push('/admin/my-overview');
-      // } else if (session?.user?.role === 'employee') {
-      //   router.push('/user/my-overview');
-      // } else {
-      //   router.push('/'); // replaceefault fallback route
-      // }
+      if (session) {
+        router.push(
+          callbackUrl ||
+            (session.user.role === 'admin'
+              ? '/admin/my-overview'
+              : '/user/my-overview')
+        );
+      }
     } catch (err) {
       console.error('Sign in error:', err);
       toast.error(err);
@@ -83,6 +85,9 @@ const SignInForm = () => {
   // useEffect(() => {
   //   console.log('showResend state updated:', showResend);
   // }, [showResend]);
+  useEffect(() => {
+    console.log('Loading is🔃', loading);
+  });
 
   useEffect(() => {
     let timeoutId;
@@ -145,14 +150,18 @@ const SignInForm = () => {
           </div>
 
           <div className="w-full  flex  justify-center align-center">
-            <button
+            {/* <button
               type="submit"
               className="w-full p-2 text-white bg-purple-600
-             rounded-md hover:bg-purple-700 disabled:bg-purple-300"
+             rounded-md hover:bg-purple-700 "
               disabled={loading}
             >
               {loading ? 'Signing in...' : 'Sign In'}
-            </button>
+            </button> */}
+
+            <LoadingButton type="submit" loading={loading} disabled={loading}>
+              Sign in
+            </LoadingButton>
           </div>
           {!showResend ? (
             <div className="mt-4 text-center text-[16px] sm:text-[12px] text-gray-600">

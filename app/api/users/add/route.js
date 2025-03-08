@@ -2,7 +2,7 @@ import crypto from 'crypto';
 import prisma from '@/lib/prisma';
 import { Resend } from 'resend';
 import { NextResponse } from 'next/server';
-import { validatePassword, verificationEmail } from '@/helpers/utils';
+import { verificationEmail } from '@/lib/emails';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 

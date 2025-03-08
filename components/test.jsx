@@ -6,40 +6,45 @@ export default withAuth(
     const token = req.nextauth.token;
     const isAdmin = token?.role === 'owner' || token?.role === 'admin';
     const isEmployee = token?.role === 'employee';
-    const path = req.nextUrl.pathname;
 
-    // console.log('token✅: ', token);  // If authenticated user hits the root path, redirect based on role
+    console.log('Middleware Debug:', {
+      hasToken: !!token,
+      tokenRole: token?.role,
+      pathname: req.nextUrl.pathname,
+      isAdmin,
+      isEmployee,
+    });
 
-    // Don't redirect on auth-related paths
-    if (path.startsWith('/api/auth') || path === '/logout') {
-      return NextResponse.next();
+    console.log('token✅: ', token);
+
+    if (!token && !session) {
+      console.log('No token or session🩸');
+      const signupUrl = new URL('/signup', req.url);
+      return NextResponse.redirect(signupUrl);
     }
 
-    // If authenticated user hits the root path, redirect based on role
-    if (path === '/') {
-      if (isEmployee) {
-        return NextResponse.redirect(new URL('/user/my-overview', req.url));
-      }
+    // Check if token exists but is invalid
+    if (token && !token.id) {
+      console.log('Invalid token detected');
+      const loginUrl = new URL('/login', req.url);
+      loginUrl.searchParams.set('callbackUrl', req.url);
+      return NextResponse.redirect(loginUrl);
+    }
+
+    // Handle root path redirect
+    if (req.nextUrl.pathname === '/') {
       if (isAdmin) {
         return NextResponse.redirect(new URL('/admin/my-overview', req.url));
       }
-    }
-
-    // For /signup and /login paths, redirect authenticated users to their appropriate dashboard
-    if (path === '/signup' || path === '/login') {
-      if (token) {
-        if (isEmployee) {
-          return NextResponse.redirect(new URL('/user/my-overview', req.url));
-        }
-        if (isAdmin) {
-          return NextResponse.redirect(new URL('/admin/my-overview', req.url));
-        }
+      if (isEmployee) {
+        return NextResponse.redirect(new URL('/user/my-overview', req.url));
       }
     }
 
     // Redirect unauthenticated users to login
     if (!token) {
-      const loginUrl = new URL('/signup', req.url);
+      // console.log('No token detected');
+      const loginUrl = new URL('/login', req.url);
       loginUrl.searchParams.set('callbackUrl', req.url);
       return NextResponse.redirect(loginUrl);
     }
@@ -47,51 +52,40 @@ export default withAuth(
     // Protect admin routes
     if (req.nextUrl.pathname.startsWith('/admin')) {
       if (!isAdmin) {
-        return NextResponse.redirect(new URL('/user', req.url));
+        return NextResponse.redirect(new URL('/user/my-overview', req.url));
       }
     }
 
     // Protect employee routes
     if (req.nextUrl.pathname.startsWith('/user')) {
       if (!isEmployee) {
-        return NextResponse.redirect(new URL('/admin', req.url));
+        return NextResponse.redirect(new URL('/admin/my-overview', req.url));
       }
     }
 
     // Protect API routes
-    if (req.nextUrl.pathname.startsWith('/api/shifts')) {
-      if (!isAdmin) {
-        return NextResponse.json(
-          { error: 'Insufficient permissions' },
-          { status: 403 }
-        );
-      }
-    }
+    // if (req.nextUrl.pathname.startsWith('/api/shifts')) {
+    //   if (!isAdmin) {
+    //     return NextResponse.json(
+    //       { error: 'Insufficient permissions' },
+    //       { status: 403 }
+    //     );
+    //   }
+    // }
 
     return NextResponse.next();
   },
   {
     callbacks: {
       authorized: ({ token }) => {
-        // console.log('Middleware Authorization - Token exists:', !!token);
-        // console.log('Middleware Authorization - Token details:', token);
+        console.log('Middleware Authorization - Token exists:', !!token);
+        console.log('Middleware Authorization - Token details:', token);
         return !!token?.id;
       },
     },
   }
 );
 
-// export const config = {
-//   matcher: ['/admin/:path*', '/user/:path*', '/api/shifts/:path*'],
-// };
 export const config = {
-  matcher: [
-    '/',
-    '/signup',
-    '/login',
-    '/logout',
-    '/admin/:path*',
-    '/user/:path*',
-    '/api/shifts/:path*',
-  ],
+  matcher: ['/', '/admin/:path*', '/user/:path*'],
 };

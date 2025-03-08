@@ -1,6 +1,6 @@
 import React from 'react';
 import { X as XIcon } from 'lucide-react';
-import useShiftDuration from '@/hooks/useShiftDuration';
+import {useShiftDuration} from '@/hooks/useShiftDuration';
 import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
 
 const ShiftSummaryEditModal = ({

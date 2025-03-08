@@ -1,6 +1,5 @@
 'use client';
 
-import Spinner from '@/components/Spinner';
 import { useSession } from 'next-auth/react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useEffect } from 'react';
@@ -29,14 +28,6 @@ export default function SessionGuard({ children }) {
   }, [session, status, router, pathname]);
 
   // Handle loading state
-  if (status === 'loading') {
-    // console.log('Loading state detected');
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Spinner />
-      </div>
-    );
-  }
 
   // Allow public routes
   if (publicPaths.includes(pathname)) {

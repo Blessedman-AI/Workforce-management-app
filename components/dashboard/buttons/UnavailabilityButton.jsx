@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import SetUnavailability from '../employee/setUnavailability/SetUnavailability';
+import Unavailability from '../employee/unavailability/UnavailabilitySlider';
 
 const UnavailabilityButton = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -18,7 +18,7 @@ const UnavailabilityButton = () => {
       >
         Set unavailability
       </button>
-      <SetUnavailability
+      <Unavailability
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
       />

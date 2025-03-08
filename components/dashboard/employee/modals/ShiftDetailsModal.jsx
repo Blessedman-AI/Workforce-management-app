@@ -12,6 +12,7 @@ const ShiftDetailsModal = ({
   isOpen,
   onClose,
   handleShiftReplacementButtonClick,
+  handleCancelExchangeRequest,
   event,
 }) => {
   if (!isOpen || !event) return null;
@@ -22,7 +23,7 @@ const ShiftDetailsModal = ({
   const duration = moment.duration(end.diff(start));
   const hours = duration.asHours();
 
-  console.log('shift details😲', event.createdByFirstName);
+  console.log('event😲', event);
 
   return (
     <div>
@@ -94,12 +95,21 @@ const ShiftDetailsModal = ({
                 <button onClick={onClose} className="plain-button-2">
                   Close
                 </button>
-                <button
-                  onClick={() => handleShiftReplacementButtonClick(event)}
-                  className="plain-button-1"
-                >
-                  Request Exchange
-                </button>
+                {event?.exchangeRequestStatus === 'PENDING' ? (
+                  <button
+                    onClick={() => handleCancelExchangeRequest(event)}
+                    className="plain-button-1"
+                  >
+                    Cancel exchange request
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => handleShiftReplacementButtonClick(event)}
+                    className="plain-button-1"
+                  >
+                    Request Exchange
+                  </button>
+                )}
               </div>
             </DialogPanel>
           </div>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Description,
   Dialog,
@@ -6,26 +6,80 @@ import {
   DialogTitle,
 } from '@headlessui/react';
 import { Search, X as XIcon } from 'lucide-react';
-import { employees } from '@/helpers/data';
+import { getUsers } from '@/helpers/fetchers';
+import { useSession } from 'next-auth/react';
+import { useShiftExchange } from '@/hooks/useShiftExchange';
+import toast from 'react-hot-toast';
 
-const ShiftReplacementModal = ({ isOpen, onClose, event, onSendRequest }) => {
+const ShiftReplacementModal = ({
+  loadShifts,
+  isOpen,
+  onClose,
+  shiftId,
+  shiftTitle,
+}) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedUsers, setSelectedUsers] = useState([]);
+  const [employees, setEmployees] = useState([]);
+  const [error, setError] = useState();
+  const { sendExchangeRequest, loading, exchangeError } = useShiftExchange();
+  const { data: session, status } = useSession();
+
+  // console.log('✅', session);
+
+  useEffect(() => {
+    async function fetchUsers() {
+      const data = await getUsers(); // Fetch all users
+      if (data) {
+        // Filter out the currently logged-in user
+        const filteredCurrentUser = data.filter(
+          (user) =>
+            user.id !== session?.user?.id &&
+            user.emailVerified &&
+            user.role !== 'admin' &&
+            user.role !== 'owner'
+        );
+        setEmployees(filteredCurrentUser);
+      } else {
+        setError('Failed to fetch users.');
+      }
+    }
+
+    fetchUsers();
+  }, [session]);
+
+  // console.log('😉', employees);
 
   // Only show employees if there's a search query
   const filteredEmployees =
     searchQuery.length > 0
       ? employees.filter((employee) =>
-          employee.name.toLowerCase().includes(searchQuery.toLowerCase())
+          employee.firstName.toLowerCase().includes(searchQuery.toLowerCase())
         )
       : [];
 
   // Toggle user selection
-  const toggleUserSelection = (userId) => {
-    if (selectedUsers.includes(userId)) {
-      setSelectedUsers(selectedUsers.filter((id) => id !== userId));
+  // const toggleUserSelection = (userId) => {
+  //   if (selectedUsers.includes(userId)) {
+  //     setSelectedUsers(selectedUsers.filter((id) => id !== userId));
+  //   } else {
+  //     setSelectedUsers([...selectedUsers, userId]);
+  //   }
+  // };
+
+  const toggleUserSelection = (employee) => {
+    const isSelected = selectedUsers.some((user) => user.id === employee.id);
+
+    if (isSelected) {
+      setSelectedUsers(selectedUsers.filter((user) => user.id !== employee.id));
     } else {
-      setSelectedUsers([...selectedUsers, userId]);
+      setSelectedUsers([
+        ...selectedUsers,
+        {
+          id: employee.id,
+          firstName: employee.firstName,
+        },
+      ]);
     }
   };
 
@@ -33,15 +87,47 @@ const ShiftReplacementModal = ({ isOpen, onClose, event, onSendRequest }) => {
   const deselectAll = () => {
     setSelectedUsers([]);
   };
+  // console.log('selected user🔥', selectedUsers[0]?.firstName);
+  // const handleSendRequest = () => {
+  //   const selectedUserNames = employees
+  //     .filter((employee) => selectedUsers.includes(employee.id))
+  //     .map((employee) => employee.firstName);
 
-  const handleSendRequest = () => {
-    const selectedUserNames = employees
-      .filter((employee) => selectedUsers.includes(employee.id))
-      .map((employee) => employee.name);
+  //   onClose();
+  //   // Pass selectedUserNames to parent component
+  //   onSendRequest(selectedUserNames);
+  // };
 
-    onClose();
-    // Pass selectedUserNames to parent component
-    onSendRequest(selectedUserNames);
+  // useEffect(() => {
+  //   console.log('Modal props:🔥', { shiftId, shiftTitle });
+  // }, [shiftId, shiftTitle]);
+
+  const handleSendRequest = async () => {
+    if (loading) return;
+    try {
+      const requestedUserId = selectedUsers[0]?.id;
+      const requestedUserFirstName = selectedUsers[0]?.firstName;
+      // console.log('userID', requestedUserId);
+      // console.log('firstName', requestedUserFirstName);
+
+      // console.log('Attempting to send request with:✅', {
+      //   shiftId,
+      //   requestedUserId,
+      //   requestedUserFirstName,
+      // });
+
+      // Use shiftId instead of event.id
+      await sendExchangeRequest(shiftId, requestedUserId);
+      toast.success(`Request sent to ${requestedUserFirstName}`);
+
+      onClose();
+      loadShifts();
+    } catch (error) {
+      console.error('Failed to send request:', error);
+      toast.error(
+        'Failed to send shift replacement request. Please try again.'
+      );
+    }
   };
 
   return (
@@ -80,7 +166,7 @@ const ShiftReplacementModal = ({ isOpen, onClose, event, onSendRequest }) => {
             <div className="px-8 flex-1 flex flex-col">
               <div className="mb-5">
                 <h3 className="subheading-1 font-bold">
-                  {`Select a user to replace you in your ${event?.title}`}
+                  {`Select a user to replace you in your ${shiftTitle}`}
                 </h3>
               </div>
 
@@ -105,7 +191,7 @@ const ShiftReplacementModal = ({ isOpen, onClose, event, onSendRequest }) => {
                     {filteredEmployees.length > 0 && (
                       <button
                         onClick={deselectAll}
-                        className="text-blue-500 hover:text-blue-600"
+                        className="text-purple-1 hover:text-purple-2"
                       >
                         Deselect all
                       </button>
@@ -122,16 +208,29 @@ const ShiftReplacementModal = ({ isOpen, onClose, event, onSendRequest }) => {
               space-x-3 p-2 hover:bg-gray-50 rounded-lg cursor-pointer"
                         >
                           <div className="flex items-center space-x-3">
-                            <div className="bg-green-100 w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium">
-                              {employee.avatar}
-                            </div>
-                            <span>{employee.name}</span>
+                            <div
+                              className={`w-8 h-8 rounded-full flex items-center 
+                                justify-center text-sm font-medium`}
+                              style={{ backgroundColor: employee.avatarColor }}
+                            ></div>
+                            <span>{employee.firstName}</span>
                           </div>
+                          {/* <input
+                            type="checkbox"
+                            checked={
+                              selectedUsers.includes(employee.id) &&
+                              selectedUsers.includes(employee.firstName)
+                            }
+                            onChange={() => toggleUserSelection(employee.id)}
+                            className="rounded border-gray-300 text-purple-1"
+                          /> */}
                           <input
                             type="checkbox"
-                            checked={selectedUsers.includes(employee.id)}
-                            onChange={() => toggleUserSelection(employee.id)}
-                            className="rounded border-gray-300 text-blue-500 focus:ring-blue-500"
+                            checked={selectedUsers.some(
+                              (user) => user.id === employee.id
+                            )}
+                            onChange={() => toggleUserSelection(employee)}
+                            className="rounded border-gray-300 text-purple-1"
                           />
                         </label>
                       ))}
@@ -140,7 +239,7 @@ const ShiftReplacementModal = ({ isOpen, onClose, event, onSendRequest }) => {
                   {/* Show a message when no results are found */}
                   {searchQuery.length > 0 && filteredEmployees.length === 0 && (
                     <div className="text-gray-500 text-center py-4">
-                      No users found matching "{searchQuery}"
+                      No users found matching {searchQuery}
                     </div>
                   )}
                 </div>
@@ -153,10 +252,10 @@ const ShiftReplacementModal = ({ isOpen, onClose, event, onSendRequest }) => {
                 </button>
                 <button
                   onClick={handleSendRequest}
-                  disabled={selectedUsers.length === 0}
+                  disabled={selectedUsers.length === 0 || loading}
                   className="button-primary disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Send request
+                  {loading ? 'Sending...' : 'Send Request'}
                 </button>
               </div>
             </div>

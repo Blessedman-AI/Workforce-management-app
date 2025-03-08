@@ -1,6 +1,7 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
+import { formatShift } from '@/helpers/utils';
 
-const useShiftDuration = (initialData) => {
+export const useShiftDuration = (initialData) => {
   const formatDateToInput = (dateStr) => {
     if (!dateStr) return '';
     const date = new Date(dateStr);
@@ -166,192 +167,20 @@ const useShiftDuration = (initialData) => {
   };
 };
 
-export default useShiftDuration;
+export const useAssignedShifts = ({ assignedShifts, refreshTrigger }) => {
+  const [formattedShifts, setFormattedShifts] = useState([]);
+  const [loadingShifts, setLoadingShifts] = useState(true);
 
-//WORKING CODE//////////////////////////////////////////
-// import { useState, useCallback } from 'react';
+  useEffect(() => {
+    if (!assignedShifts) {
+      setLoadingShifts(false);
+      return;
+    }
 
-// const useShiftDuration = (initialData) => {
-//   const formatDateToInput = (date) => {
-//     if (!date) return '';
-//     const parsedDate = new Date(date);
-//     const year = parsedDate.getFullYear();
-//     const month = String(parsedDate.getMonth() + 1).padStart(2, '0');
-//     const day = String(parsedDate.getDate()).padStart(2, '0');
-//     return `${year}-${month}-${day}`;
-//   };
+    const formatted = assignedShifts.map(formatShift);
+    setFormattedShifts(formatted);
+    setLoadingShifts(false);
+  }, [assignedShifts, refreshTrigger]);
 
-//   const [shiftData, setShiftData] = useState(() => {
-//     // Parse the shift start/end times from the initial clock times
-//     const [schedStartHours, schedStartMinutes] = initialData.clockIn
-//       .split(':')
-//       .map(Number);
-//     const [schedEndHours, schedEndMinutes] = initialData.clockOut
-//       .split(':')
-//       .map(Number);
-
-//     // Create scheduled Date objects with the correct times
-//     const scheduledStart = new Date(initialData.shiftStart);
-//     scheduledStart.setHours(schedStartHours, schedStartMinutes, 0, 0);
-
-//     const scheduledEnd = new Date(initialData.shiftEnd);
-//     scheduledEnd.setHours(schedEndHours, schedEndMinutes, 0, 0);
-
-//     // Format the dates for input fields
-//     const formattedStartDate = formatDateToInput(scheduledStart);
-//     const formattedEndDate = formatDateToInput(scheduledEnd);
-
-//     console.log('Initializing with times:', {
-//       originalScheduledStart: scheduledStart,
-//       originalScheduledEnd: scheduledEnd,
-//       schedStartHours,
-//       schedStartMinutes,
-//       schedEndHours,
-//       schedEndMinutes,
-//     });
-
-//     return {
-//       ...initialData,
-//       startDate: formattedStartDate,
-//       endDate: formattedEndDate,
-//       clockIn: initialData.clockIn,
-//       clockOut: initialData.clockOut,
-//       // Store the original scheduled times with their proper hours/minutes
-//       scheduledStart,
-//       scheduledEnd,
-//       // Store the original scheduled hours/minutes
-//       scheduledStartTime: `${String(schedStartHours).padStart(2, '0')}:${String(
-//         schedStartMinutes
-//       ).padStart(2, '0')}`,
-//       scheduledEndTime: `${String(schedEndHours).padStart(2, '0')}:${String(
-//         schedEndMinutes
-//       ).padStart(2, '0')}`,
-//       totalHours: initialData.totalHours,
-//       overtime: initialData.overtime,
-//     };
-//   });
-
-//   const calculateDuration = useCallback(
-//     (startDate, endDate, clockIn, clockOut, scheduledStart, scheduledEnd) => {
-//       if (
-//         !clockIn ||
-//         !clockOut ||
-//         !startDate ||
-//         !endDate ||
-//         !scheduledStart ||
-//         !scheduledEnd
-//       ) {
-//         return { totalHours: '00:00', overtime: '00:00:00' };
-//       }
-
-//       try {
-//         // Parse actual work times
-//         const [inHours, inMinutes] = clockIn.split(':').map(Number);
-//         const [outHours, outMinutes] = clockOut.split(':').map(Number);
-
-//         // Create Date objects for actual work times
-//         const actualStart = new Date(startDate);
-//         actualStart.setHours(inHours, inMinutes, 0, 0);
-
-//         const actualEnd = new Date(endDate);
-//         actualEnd.setHours(outHours, outMinutes, 0, 0);
-
-//         // Calculate worked duration
-//         const workedMs = actualEnd.getTime() - actualStart.getTime();
-//         const workedMinutes = Math.floor(workedMs / 60000);
-
-//         // Get the original scheduled duration
-//         const [schedStartHours, schedStartMinutes] =
-//           shiftData.scheduledStartTime.split(':').map(Number);
-//         const [schedEndHours, schedEndMinutes] = shiftData.scheduledEndTime
-//           .split(':')
-//           .map(Number);
-
-//         // Calculate scheduled duration in minutes
-//         const scheduledStart = new Date(startDate);
-//         scheduledStart.setHours(schedStartHours, schedStartMinutes, 0, 0);
-
-//         const scheduledEnd = new Date(endDate);
-//         scheduledEnd.setHours(schedEndHours, schedEndMinutes, 0, 0);
-
-//         const scheduledMs = scheduledEnd.getTime() - scheduledStart.getTime();
-//         const scheduledMinutes = Math.floor(scheduledMs / 60000);
-
-//         console.log('Duration calculation:', {
-//           workedMinutes,
-//           scheduledMinutes,
-//           actualStart: actualStart.toISOString(),
-//           actualEnd: actualEnd.toISOString(),
-//           scheduledStart: scheduledStart.toISOString(),
-//           scheduledEnd: scheduledEnd.toISOString(),
-//         });
-
-//         // Handle negative durations
-//         if (workedMinutes < 0) {
-//           return { totalHours: '00:00', overtime: '00:00:00' };
-//         }
-
-//         // Calculate overtime
-//         const overtimeMinutes = Math.max(0, workedMinutes - scheduledMinutes);
-
-//         // Format total hours
-//         const totalHours = Math.floor(workedMinutes / 60);
-//         const totalMinutes = workedMinutes % 60;
-
-//         // Format overtime
-//         const overtimeHours = Math.floor(overtimeMinutes / 60);
-//         const overtimeRemainingMinutes = overtimeMinutes % 60;
-
-//         return {
-//           totalHours: `${String(totalHours).padStart(2, '0')}:${String(
-//             totalMinutes
-//           ).padStart(2, '0')}`,
-//           overtime: `${String(overtimeHours).padStart(2, '0')}:${String(
-//             overtimeRemainingMinutes
-//           ).padStart(2, '0')}:00`,
-//         };
-//       } catch (error) {
-//         console.error('Error calculating duration:', error);
-//         return { totalHours: '00:00', overtime: '00:00:00' };
-//       }
-//     },
-//     [shiftData.scheduledStartTime, shiftData.scheduledEndTime]
-//   );
-
-//   const handleTimeChange = useCallback(
-//     (name, value) => {
-//       console.log('handleTimeChange:', name, value);
-
-//       setShiftData((prev) => {
-//         const newState = { ...prev, [name]: value };
-
-//         if (['startDate', 'endDate', 'clockIn', 'clockOut'].includes(name)) {
-//           const duration = calculateDuration(
-//             newState.startDate,
-//             newState.endDate,
-//             newState.clockIn,
-//             newState.clockOut,
-//             newState.scheduledStart,
-//             newState.scheduledEnd
-//           );
-
-//           return {
-//             ...newState,
-//             totalHours: duration.totalHours,
-//             overtime: duration.overtime,
-//           };
-//         }
-
-//         return newState;
-//       });
-//     },
-//     [calculateDuration]
-//   );
-
-//   return {
-//     shiftData,
-//     handleTimeChange,
-//   };
-// };
-
-// export default useShiftDuration;
+  return { shifts: formattedShifts, loadingShifts };
+};

@@ -5,47 +5,109 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  
 }
 
+
+
 model User {
-  id             String    @id @default(cuid())
-  firstName      String    @default("")
-  lastName       String    @default("")
-  email          String    @unique
-  password       String?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-  role           String    @default("")
-  image          String?
-  deletedAt      DateTime?
-  avatarColor    String?
-  lastLogin      DateTime?
-  emailVerified  DateTime?
-  tokenExpiry    DateTime?
-  verifyToken    String?   @unique
-  accounts       Account[]
-  sessions       Session[]
-  assignedShifts Shift[]   @relation("AssignedShifts")
-  createdShifts  Shift[]   @relation("CreatedShifts")
+  id                       String                 @id @default(cuid())
+  firstName                String                 @default("")
+  lastName                 String                 @default("")
+  email                    String                 @unique
+  password                 String?
+  createdAt                DateTime               @default(now())
+  updatedAt                DateTime               @updatedAt
+  role                     String                 @default("")
+  image                    String?
+  deletedAt                DateTime?
+  avatarColor              String?
+  lastLogin                DateTime?
+  emailVerified            DateTime?
+  tokenExpiry              DateTime?
+  verifyToken              String?                @unique
+  accounts                 Account[]
+  sessions                 Session[]
+  assignedShifts           Shift[]                @relation("AssignedShifts")
+  createdShifts            Shift[]                @relation("CreatedShifts")
+  receivedExchangeRequests ShiftExchangeRequest[] @relation("requestedUser")
+  requestedExchanges       ShiftExchangeRequest[] @relation("requester")
+  notifications            Notification[]
+  unavailabilities         Unavailability[]
+}
+
+model Unavailability {
+  id        String   @id @default(cuid())
+  userId    String
+  startDate DateTime
+  endDate   DateTime
+  type      String   // "VACATION" or "RESTRICTED_HOURS"
+  user      User     @relation(fields: [userId], references: [id])
+  intervals UnavailabilityInterval[] @relation("UnavailabilityToIntervals")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([type])
+}
+
+model UnavailabilityInterval {
+  id               String        @id @default(cuid())
+  unavailabilityId String
+  dayOfWeek        Int           // 0-6 (Sunday-Saturday)
+  startTime        String        // "HH:MM" format
+  endTime          String        // "HH:MM" format
+  unavailability   Unavailability @relation("UnavailabilityToIntervals", fields: [unavailabilityId], references: [id], onDelete: Cascade)
+
+  @@index([unavailabilityId])
 }
 
 model Shift {
-  id               String    @id @default(cuid())
+  id               String                 @id @default(cuid())
   start            DateTime
   end              DateTime
   title            String
   description      String?
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime? @updatedAt
-  repeatShift      Boolean   @default(false)
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime?              @updatedAt
+  repeatShift      Boolean                @default(false)
   repeatFrequency  String?
-  sendNotification Boolean   @default(false)
+  sendNotification Boolean                @default(false)
   break            Int?
   assignedToUserId String
   createdByUserId  String
   shiftType        String?
-  assignedToUser   User      @relation("AssignedShifts", fields: [assignedToUserId], references: [id])
-  createdByUser    User      @relation("CreatedShifts", fields: [createdByUserId], references: [id])
+  assignedToUser   User                   @relation("AssignedShifts", fields: [assignedToUserId], references: [id])
+  createdByUser    User                   @relation("CreatedShifts", fields: [createdByUserId], references: [id])
+  exchangeRequests ShiftExchangeRequest[] @relation("ShiftExchangeRequests")
+}
+
+model ShiftExchangeRequest {
+  id                       String   @id @default(cuid())
+  shiftId                  String
+  requesterId              String
+  requestedUserId          String
+  status                   String   @default("PENDING")
+  respondedAt              DateTime?
+  availableForOthers       Boolean   @default(false)
+  createdAt                DateTime  @default(now())
+  rejectedAt               DateTime?
+  cancelledAt              DateTime?
+  requestedUser   User     @relation("requestedUser", fields: [requestedUserId], references: [id])
+  requester       User     @relation("requester", fields: [requesterId], references: [id])
+ shift            Shift    @relation("ShiftExchangeRequests", fields: [shiftId], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  link      String?
+  message   String
+  messageData String?
+  type      String   // e.g., 'SHIFT_EDIT', 'SHIFT_REQUEST', 'SHIFT_RESPONSE'
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
 }
 
 model Session {

@@ -23,6 +23,7 @@ export async function getUsers(role) {
     const endpoint = role ? `/api/users?role=${role}` : `/api/users`;
 
     const response = await axios.get(endpoint);
+    // console.log('🔥', response.data);
 
     // Handle success
     // console.log('Users are💕:', response.data);

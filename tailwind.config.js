@@ -6,55 +6,57 @@ module.exports = {
     './app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
-    fontSize: {
-      'heading-1': [
-        '50px',
-
-        {
-          marginTop: '0',
-          marginBottom: '10',
-          lineHeight: '1.2',
-          fontWeight: '700',
-        },
-      ],
-      'subheading-1': [
-        '22px',
-        {
-          marginTop: '0',
-          marginBottom: '8px',
-          lineHeight: '1.4',
-          fontWeight: '500',
-        },
-      ],
-      'subheading-2': [
-        '18px',
-        {
-          marginTop: '0',
-          marginBottom: '8px',
-          lineHeight: '1.4',
-          fontWeight: '700',
-        },
-      ],
-
-      text: [
-        '16px',
-        {
-          lineHeight: '100%',
-        },
-      ],
-      boldText: [
-        '16px',
-        {
-          lineHeight: '100%',
-          fontWeight: '700',
-        },
-      ],
-    },
     extend: {
       fontFamily: {
         sans: ['var(--font-roboto)'],
         serif: ['var(--font-merriweather)'],
       },
+
+      fontSize: {
+        'heading-1': [
+          '50px',
+
+          {
+            marginTop: '0',
+            marginBottom: '10',
+            lineHeight: '1.2',
+            fontWeight: '700',
+          },
+        ],
+        'subheading-1': [
+          '22px',
+          {
+            marginTop: '0',
+            marginBottom: '8px',
+            lineHeight: '1.4',
+            fontWeight: '500',
+          },
+        ],
+        'subheading-2': [
+          '18px',
+          {
+            marginTop: '0',
+            marginBottom: '8px',
+            lineHeight: '1.4',
+            fontWeight: '700',
+          },
+        ],
+
+        text: [
+          '16px',
+          {
+            lineHeight: '100%',
+          },
+        ],
+        boldText: [
+          '16px',
+          {
+            lineHeight: '100%',
+            fontWeight: '700',
+          },
+        ],
+      },
+
       colors: {
         'black-1': '#333132',
         'white-1': '#fff',
@@ -175,9 +177,9 @@ module.exports = {
         },
 
         '.plain-button-1': {
-          paddingTop: '1.1rem',
+          paddingTop: '1rem',
           paddingRight: '1rem',
-          paddingBottom: '1.1rem',
+          paddingBottom: '1rem',
           paddingLeft: '1rem',
           backgroundColor: '#8e49ff',
           color: '#fff',
@@ -198,9 +200,9 @@ module.exports = {
         },
 
         '.plain-button-2': {
-          paddingTop: '1.1rem',
+          paddingTop: '1rem',
           paddingRight: '1rem',
-          paddingBottom: '1.1rem',
+          paddingBottom: '1rem',
           paddingLeft: '1rem',
           paddingLeft: '1rem',
 

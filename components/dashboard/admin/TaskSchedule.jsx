@@ -14,6 +14,7 @@ import ScheduleModal from './ScheduleModal';
 import { getUsers } from '@/helpers/fetchers';
 import Spinner from '@/components/Spinner';
 import CustomMonthCell from '@/components/CustomMonthCell';
+import CircularSpinner from '@/components/Spinners';
 const localizer = momentLocalizer(moment);
 
 const TaskSchedule = () => {
@@ -27,7 +28,8 @@ const TaskSchedule = () => {
   const [isLoadingShifts, setIsLoadingShifts] = useState(null);
   const [isDeletingShift, setIsDeletingShift] = useState(null);
   const [error, setError] = useState(null);
-  const [isAuthorised, setIsAuthorised] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isUser, setIsUser] = useState(false);
   const { data: session, status } = useSession();
   const [employees, setEmployees] = useState([]);
 
@@ -49,11 +51,14 @@ const TaskSchedule = () => {
 
   useEffect(() => {
     if (['owner', 'admin'].includes(session?.user?.role)) {
-      setIsAuthorised(true);
-    } else {
-      setIsAuthorised(false);
+      setIsAdmin(true);
+    }
+
+    if (session?.user?.role === 'employee') {
+      setIsUser(true);
     }
   }, [session]);
+  // console.log('session🔫', session);
 
   //fetch employees and store in state
   useEffect(() => {
@@ -240,7 +245,7 @@ const TaskSchedule = () => {
                   ...updatedShift, // Keep all fields from the response
                   start: new Date(updatedShift.start),
                   end: new Date(updatedShift.end),
-                  title: `${updatedShift.assignedToUser.firstName} ${updatedShift.assignedToUser.lastName} - ${updatedShift.shiftType}`,
+                  title: `${updatedShift.assignedToUser.firstName} ${updatedShift.assignedToUser.lastName}`,
                   resourceId: updatedShift.assignedToUserId,
                   assignedToUserId: updatedShift.assignedToUser.id,
                   break: updatedShift.break,
@@ -265,7 +270,7 @@ const TaskSchedule = () => {
             ...newShift,
             start: new Date(newShift.start),
             end: new Date(newShift.end),
-            title: `${newShift.assignedToUser.firstName} ${newShift.assignedToUser.lastName} - ${newShift.shiftType}`,
+            title: `${newShift.assignedToUser.firstName} ${newShift.assignedToUser.lastName}`,
             assignedTo: formData.employee,
             resourceId: newShift.assignedToUserId,
 
@@ -403,7 +408,7 @@ const TaskSchedule = () => {
       }`}
     > */}
       {isLoadingShifts ? (
-        <Spinner />
+        <CircularSpinner />
       ) : (
         <Calendar
           step={30}
@@ -419,7 +424,8 @@ const TaskSchedule = () => {
                 {...eventProps}
                 onEdit={(e) => handleEdit(eventProps.event, e)}
                 onDelete={handleDelete}
-                isAuthorised={isAuthorised}
+                isAdmin={isAdmin}
+                isUser={isUser}
                 isDeletingShift={isDeletingShift}
                 Views={Views}
                 currentView={currentView}

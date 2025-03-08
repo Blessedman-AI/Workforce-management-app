@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Pencil, Trash2, Eye } from 'lucide-react';
 import moment from 'moment';
 
@@ -9,12 +9,13 @@ export const CustomEvent = ({
   onEdit,
   onDelete,
   shiftDetails,
-  isAuthorised,
+  isAdmin,
+  isUser,
   isDeletingShift,
 }) => {
   const [isHovering, setIsHovering] = useState(false);
-
-  // console.log('This is event', event);
+  let backgroundColor = '#51a4b2';
+  let textColor;
 
   const handleMouseEnter = () => {
     setIsHovering(true);
@@ -24,18 +25,32 @@ export const CustomEvent = ({
     setIsHovering(false);
   };
 
-  // console.log('isAuthorised:✅', isAuthorised);
+  // console.log('Event is', event);
+
+  if (event.title === 'Unavailable') {
+    backgroundColor = '#f7e6e8'; // Light red/pink
+    textColor = '#d32f2f'; // Dark red
+  } else if (event.title === 'Vacation') {
+    backgroundColor = '#FFC107'; // Yellow
+    textColor = '#a64f03'; // Brown (for contrast)
+  } else if (event.title?.includes('shift')) {
+    backgroundColor = '#51a4b2'; // Teal
+    textColor = '#ffffff'; // White
+  } else if (event.exchangeRequestStatus === 'PENDING') {
+    backgroundColor = '#fac85c'; // Light Orange
+    textColor = '#8a5400'; // Darker Orange/Brown
+  }
 
   return (
     <div
       style={{
-        backgroundColor:
-          event.title !== 'Unavailable' ? 'white' : 'rgba(242, 96, 114, .4)',
-        border: event.title !== 'Unavailable' ? '2px solid #38c173' : 'none',
+        backgroundColor,
+        color: textColor,
         borderRadius: '4px',
         padding: '12px 6px',
         height: '50px',
-        width: 'fit-content',
+        width: '100%',
+        minWidth: '100%',
         overflowY: 'hidden',
         display: 'flex',
         justifyContent: 'center',
@@ -43,47 +58,47 @@ export const CustomEvent = ({
         flexDirection: 'column',
         lineHeight: '1.5',
         position: 'relative',
+        textAlign: 'center',
         letterSpacing: 'normal',
-        overfloWrap: 'break-word',
+        fontSize: '13px',
+        overflowWrap: 'break-word',
+        whiteSpace: 'normal',
       }}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
       <span
         style={{
-          color: event.title !== 'Unavailable' ? '#333132' : 'red',
-          fontSize: '12px',
+          fontWeight: '500',
         }}
       >
-        <strong
-          style={{
-            textAlign: 'center',
-            overflowWrap: 'break-word',
-            whiteSpace: 'normal',
-          }}
-        >
-          {event.title}
-        </strong>
+        {event.title}
+        {/* <strong>{event.title}</strong> */}
       </span>
       <span
         style={{
-          color: event.title !== 'Unavailable' ? '#333132' : 'red',
           fontWeight: 'normal',
           fontSize: '11px',
-          textAlign: 'center',
-          overflowWrap: 'break-word',
-          whiteSpace: 'normal',
         }}
       >
-        {moment(event.start).format('HH:mm')} -{' '}
-        {moment(event.end).format('HH:mm')}
+        {/* {event.title === 'Vacation'
+          ? `${event.start} - ${event.end}`
+          : `${event.start} - ${event.end}`} */}
+
+        {event.title === 'Vacation'
+          ? `${moment(event.start).format('D/M/YY')} - ${moment(event.end).format('D/M/YY')}`
+          : `${moment(event.start).format('HH:mm')} - ${moment(event.end).format('HH:mm')}`}
       </span>
 
-      {isHovering && isAuthorised && (
+      {(isHovering || isDeletingShift) && isAdmin && (
         <div
-          className="absolute inset-0 w-full h-full space-x-3 flex justify-center 
+          className="absolute w-full h-full space-x-3 flex justify-center 
           items-center border border-r-4 bg-white rounded-sm
-          shadow-lg transition-opacity duration-300 z-[99]"
+          shadow-lg transition-opacity duration-300 "
+          style={{
+            border: '2px solid',
+            borderColor: backgroundColor,
+          }}
         >
           <button
             onClick={() => onEdit(event)}
@@ -95,14 +110,15 @@ export const CustomEvent = ({
           <button
             onClick={() => onDelete(event)}
             disabled={isDeletingShift}
-            className="text-grey-3 hover:text-purple-1"
+            className="text-grey-3 hover:text-purple-3
+             disabled:text-grey-1 disabled:hover:text-grey-1"
           >
             <Trash2 size={18} />
           </button>
         </div>
       )}
 
-      {isHovering && event.title !== 'Unavailable' && !isAuthorised && (
+      {isHovering && isUser && event?.title?.includes('shift') && (
         <button
           onClick={() => shiftDetails(event)}
           className="flex text-[12px] flex-col absolute inset-0 

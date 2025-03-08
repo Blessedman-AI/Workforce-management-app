@@ -1,3 +1,5 @@
+'use client';
+
 import {
   Description,
   Dialog,
@@ -7,6 +9,7 @@ import {
 import { format } from 'date-fns';
 
 import { X as XIcon } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 const ScheduleModal = ({
   isOpen,
@@ -17,6 +20,16 @@ const ScheduleModal = ({
   employeeList,
 }) => {
   // console.log('form Data:🥗', formData);
+  const [filteredEmployees, setFilteredEmployees] = useState();
+
+  useEffect(() => {
+    const filteredEmployeeList = employeeList?.filter(
+      (emp) => emp.emailVerified
+    );
+    setFilteredEmployees(filteredEmployeeList);
+  }, [employeeList]);
+
+  // console.log('🥗', filteredEmployees);
 
   const getSelectedEmployee = () =>
     employeeList?.find((emp) => emp.id === formData.employee);
@@ -119,7 +132,7 @@ const ScheduleModal = ({
                         onChange={handleInputChange}
                       >
                         <option value="">Select employee</option>
-                        {employeeList?.map((employee) => (
+                        {filteredEmployees?.map((employee) => (
                           <option key={employee?.id} value={employee?.id}>
                             {employee?.firstName} {employee?.lastName}
                           </option>

@@ -8,6 +8,7 @@ import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { getUser } from '@/helpers/fetchers';
 import Spinner from '@/components/Spinner';
+import CircularSpinner from '@/components/Spinners';
 
 const ScheduledShifts = () => {
   const [formattedShifts, setFormattedShifts] = useState([]);
@@ -82,7 +83,7 @@ const ScheduledShifts = () => {
   if (isLoadingShifts) {
     return (
       <div className="w-full p-6  ">
-        <Spinner />;
+        <CircularSpinner size={12} />;
       </div>
     );
   }
