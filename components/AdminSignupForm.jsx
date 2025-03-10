@@ -73,31 +73,31 @@ const SignupForm = () => {
       return;
     }
 
-    // try {
-    //   const signupResponse = await axios.post('/api/auth/signup', formData);
-    //   console.log('Signup response data', signupResponse);
+    try {
+      const signupResponse = await axios.post('/api/auth/signup', formData);
+      console.log('Signup response data', signupResponse);
 
-    //   const result = await signIn('credentials', {
-    //     email: formData.email,
-    //     password: formData.password,
-    //     callbackUrl: '/admin/my-overview',
-    //     redirect: true,
-    //   });
+      const result = await signIn('credentials', {
+        email: formData.email,
+        password: formData.password,
+        callbackUrl: '/admin/my-overview',
+        redirect: true,
+      });
 
-    //   if (result?.error) {
-    //     throw new Error(result.error);
-    //   }
+      if (result?.error) {
+        throw new Error(result.error);
+      }
 
-    //   if (result?.url) {
-    //     router.push(result.url);
-    //   }
-    // } catch (err) {
-    //   const errorMessage = err.response?.data?.error || 'Error during signup';
-    //   console.error('Error:', errorMessage);
-    //   toast.error(errorMessage);
-    //   setError(errorMessage);
-    //   setLoading(false);
-    // }
+      if (result?.url) {
+        router.push(result.url);
+      }
+    } catch (err) {
+      const errorMessage = err.response?.data?.error || 'Error during signup';
+      console.error('Error:', errorMessage);
+      toast.error(errorMessage);
+      setError(errorMessage);
+      setLoading(false);
+    }
   };
 
   return (
@@ -223,7 +223,7 @@ const SignupForm = () => {
                 !Object.values(validationChecks).every((check) => check)
               }
             >
-              Sign unup
+              Sign up
             </LoadingButton>
           </div>
           <div className="mt-4 text-center text-[16px] sm:text-[12px] text-gray-600">
