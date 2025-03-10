@@ -13,7 +13,7 @@ const LoadingButton = ({
     <button
       type={type}
       className={`flex items-center justify-center gap-1 w-auto py-2
-         px-6 text-white ${disabled ? 'bg-purple-4 hover:bg-purple-4' : 'bg-purple-1 hover:bg-purple-3'}
+         px-6 text-white ${disabled ? 'bg-purple-4 hover:bg-purple-4 cursor-not-allowed' : 'bg-purple-1 hover:bg-purple-3'}
         rounded-md  ${className}`}
       disabled={disabled}
       onClick={onClick}
